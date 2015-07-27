@@ -45,18 +45,13 @@ angular.module('mm.core')
         };
 
     function init() {
-        var deferred = $q.defer();
-
-        $http.get('config.json').then(function(response) {
+        return $http.get('config.json').then(function(response) {
             var data = response.data;
             for (var name in data) {
                 self.config[name] = data[name];
             }
             initialized = true;
-            deferred.resolve();
-        }, deferred.reject);
-
-        return deferred.promise;
+        });
     };
 
     /**
@@ -85,24 +80,21 @@ angular.module('mm.core')
         return getConfig(name);
 
         function getConfig(name) {
-            var deferred = $q.defer(),
-                value = self.config[name];
+            var value = self.config[name];
 
             if (typeof value == 'undefined') {
-                $mmApp.getDB().get(mmCoreConfigStore, name).then(function(entry) {
-                    deferred.resolve(entry.value);
-                }, function() {
+                return $mmApp.getDB().get(mmCoreConfigStore, name).then(function(entry) {
+                    return entry.value;
+                }).catch(function() {
                     if (typeof defaultValue != 'undefined') {
-                        deferred.resolve(defaultValue);
+                        return defaultValue;
                     } else {
-                        deferred.reject();
+                        return $q.reject();
                     }
                 });
             } else {
-                deferred.resolve(value);
+                return $q.when(value);
             }
-
-            return deferred.promise;
         }
     };
 
@@ -132,17 +124,12 @@ angular.module('mm.core')
         return setConfig(name, value);
 
         function setConfig(name, value) {
-            var deferred,
-                fromStatic = self.config[name];
-
+            var fromStatic = self.config[name];
             if (typeof(fromStatic) === 'undefined') {
                 return $mmApp.getDB().insert(mmCoreConfigStore, {name: name, value: value});
             }
-
             $log.error('Cannot save static config setting \'' + name + '\'.');
-            deferred = $q.defer()
-            deferred.reject();
-            return deferred.promise;
+            return $q.reject();
         }
     };
 
@@ -171,17 +158,12 @@ angular.module('mm.core')
         return deleteConfig(name);
 
         function deleteConfig(name) {
-            var deferred,
-                fromStatic = self.config[name];
-
+            var fromStatic = self.config[name];
             if (typeof(fromStatic) === 'undefined') {
                 return $mmApp.getDB().remove(mmCoreConfigStore, name);
             }
-
             $log.error('Cannot delete static config setting \'' + name + '\'.');
-            deferred = $q.defer()
-            deferred.reject();
-            return deferred.promise;
+            return $q.reject();
         }
     };
 

@@ -18,10 +18,15 @@ module.exports = function(config) {
       'www/lib/ionic/js/ionic.bundle.js',
       'www/lib/angular-mocks/angular-mocks.js',
       'www/lib/ydn.db/jsc/ydn.db-dev.js',
+      'www/lib/ngCordova/dist/ng-cordova.js',
+      'www/lib/angular-translate/angular-translate.js',
+      'www/lib/angular-translate-loader-partial/angular-translate-loader-partial.js',
+      'www/lib/angular-md5/angular-md5.js',
+      'www/lib/angular-aria/angular-aria.js',
+      'www/lib/moment/min/moment-with-locales.js',
       'www/build/*.js',
       'www/**/tests/*.js'
     ],
-
 
     // list of files to exclude
     exclude: [

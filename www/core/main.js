@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-angular.module('mm.core', ['pascalprecht.translate'])
+angular.module('mm.core', ['ionic', 'ngCordova', 'angular-md5', 'pascalprecht.translate', 'ngAria'])
 
 .constant('mmCoreSessionExpired', 'mmCoreSessionExpired')
 .constant('mmCoreUserDeleted', 'mmCoreUserDeleted')

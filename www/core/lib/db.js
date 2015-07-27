@@ -67,32 +67,26 @@ angular.module('mm.core')
 
     /**
      * Call a DB simple function.
+     *
      * @param  {Object}  db      DB to use.
      * @param  {String}  func    Name of the function to call.
      * @return {Promise}         Promise to be resolved when the operation finishes.
      */
     function callDBFunction(db, func) {
-        var deferred = $q.defer();
-
         try {
-            if (typeof(db) != 'undefined') {
-                db[func].apply(db, Array.prototype.slice.call(arguments, 2)).then(function(result) {
-                    if (typeof(result) == 'undefined') {
-                        deferred.reject();
+            if (typeof db != 'undefined') {
+                return $q.when(db[func].apply(db, Array.prototype.slice.call(arguments, 2))).then(function(result) {
+                    if (typeof result == 'undefined') {
+                        return $q.reject();
                     } else {
-                        deferred.resolve(result);
+                        return result;
                     }
                 });
-            } else {
-                deferred.reject();
             }
         } catch(ex) {
-            $log.error('Error executing function '+func+' to DB '+db.getName());
-            $log.error(ex.name+': '+ex.message);
-            deferred.reject();
+            $log.error('Error executing function ' + func + ' on ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
         }
-
-        return deferred.promise;
+        return $q.reject();
     }
 
     /**
@@ -103,27 +97,17 @@ angular.module('mm.core')
      * @return {Promise}
      */
     function callCount(db, store, where) {
-        var deferred = $q.defer(),
-            query;
-
+        var query;
         try {
-            if (typeof(db) != 'undefined') {
+            if (typeof db != 'undefined') {
                 query = db.from(store);
                 query = applyWhere(query, where);
-                query.count().then(function(count) {
-                    deferred.resolve(count);
-                }, function() {
-                    deferred.reject();
-                });
-            } else {
-                deferred.reject();
+                return $q.when(query.count());
             }
         } catch(ex) {
-            $log.error('Error querying db '+db.getName()+'. '+ex.name+': '+ex.message);
-            deferred.reject();
+            $log.error('Error querying db ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
         }
-
-        return deferred.promise;
+        return $q.reject();
     }
 
     /**
@@ -138,24 +122,14 @@ angular.module('mm.core')
      * @return {Promise}            Promise to be resolved when the list is retrieved.
      */
     function callWhere(db, store, field_name, op, value, op2, value2) {
-        var deferred = $q.defer();
-
         try {
-            if (typeof(db) != 'undefined') {
-                db.from(store).where(field_name, op, value, op2, value2).list().then(function(list) {
-                    deferred.resolve(list);
-                }, function() {
-                    deferred.reject();
-                });
-            } else {
-                deferred.reject();
+            if (typeof db != 'undefined') {
+                return $q.when(db.from(store).where(field_name, op, value, op2, value2).list());
             }
         } catch(ex) {
-            $log.error('Error querying db '+db.getName()+'. '+ex.name+': '+ex.message);
-            deferred.reject();
+            $log.error('Error querying db ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
         }
-
-        return deferred.promise;
+        return $q.reject();
     }
 
     /**
@@ -168,24 +142,14 @@ angular.module('mm.core')
      * @return {Promise}            Promise to be resolved when the list is retrieved.
      */
     function callWhereEqual(db, store, field_name, value) {
-        var deferred = $q.defer();
-
         try {
-            if (typeof(db) != 'undefined') {
-                db.from(store).where(field_name, '=', value).list().then(function(list) {
-                    deferred.resolve(list);
-                }, function() {
-                    deferred.reject();
-                });
-            } else {
-                deferred.reject();
+            if (typeof db != 'undefined') {
+                return $q.when(db.from(store).where(field_name, '=', value).list());
             }
         } catch(ex) {
-            $log.error('Error getting where equal from db '+db.getName()+'. '+ex.name+': '+ex.message);
-            deferred.reject();
+            $log.error('Error getting where equal from db ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
         }
-
-        return deferred.promise;
+        return $q.reject();
     }
 
     /**
@@ -196,18 +160,18 @@ angular.module('mm.core')
      * @return {Promise}           Promise to be resolved when the the operation has been applied to all entries.
      */
     function callEach(db, store, callback) {
-        var deferred = $q.defer();
-
-        callDBFunction(db, 'values', store, undefined, 99999999).then(function(entries) {
-            for (var i = 0; i < entries.length; i++) {
-                callback(entries[i]);
+        try {
+            if (typeof db != 'undefined') {
+                return $q.when(callDBFunction(db, 'values', store, undefined, 99999999)).then(function(entries) {
+                    for (var i = 0; i < entries.length; i++) {
+                        callback(entries[i]);
+                    }
+                });
             }
-            deferred.resolve();
-        }, function() {
-            deferred.reject();
-        });
-
-        return deferred.promise;
+        } catch(ex) {
+            $log.error('Error calling each from db ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
+        }
+        return $q.reject();
     }
 
     /**
@@ -222,28 +186,18 @@ angular.module('mm.core')
      * @return {Promise}
      */
     function doQuery(db, store, where, order, reverse, limit) {
-        var deferred = $q.defer(),
-            query;
-
+        var query;
         try {
-            if (typeof(db) != 'undefined') {
+            if (typeof db != 'undefined') {
                 query = db.from(store);
                 query = applyWhere(query, where);
                 query = applyOrder(query, order, reverse);
-                query.list(limit).then(function(list) {
-                    deferred.resolve(list);
-                }, function() {
-                    deferred.reject();
-                });
-            } else {
-                deferred.reject();
+                return $q.when(query.list(limit));
             }
         } catch(ex) {
             $log.error('Error querying ' + store + ' on ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
-            deferred.reject();
         }
-
-        return deferred.promise;
+        return $q.reject();
     }
 
     /**
@@ -256,27 +210,17 @@ angular.module('mm.core')
      * @return {Promise}
      */
     function doUpdate(db, store, values, where) {
-        var deferred = $q.defer(),
-            query;
-
+        var query;
         try {
-            if (typeof(db) != 'undefined') {
+            if (typeof db != 'undefined') {
                 query = db.from(store);
                 query = applyWhere(query, where);
-                query.patch(values).then(function(count) {
-                    deferred.resolve(count);
-                }, function() {
-                    deferred.reject();
-                });
-            } else {
-                deferred.reject();
+                return $q.when(query.patch(values));
             }
         } catch(ex) {
-            $log.error('Error querying ' + store + ' on ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
-            deferred.reject();
+            $log.error('Error updating ' + store + ' on ' + db.getName() + '. ' + ex.name + ': ' + ex.message);
         }
-
-        return deferred.promise;
+        return $q.reject();
     }
 
     /**
@@ -476,6 +420,7 @@ angular.module('mm.core')
      * @return {Promise}       Promise to be resolved when the site DB is deleted.
      */
     self.deleteDB = function(name) {
+<<<<<<< HEAD
         var deferred = $q.defer();
 
         function deleteDB() {
@@ -491,6 +436,10 @@ angular.module('mm.core')
         }
 
         return deferred.promise;
+=======
+        delete dbInstances[name];
+        return $q.when(ydn.db.deleteDatabase(name));
+>>>>>>> MOBILE-930 test: Update config/site tests and add mmDB tests
     };
 
     return self;
