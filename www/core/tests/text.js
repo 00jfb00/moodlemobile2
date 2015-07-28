@@ -14,6 +14,7 @@
 
 describe('$mmText', function() {
     var $mmText,
+        $timeout,
         translationMock = {
             'mm.core.notapplicable': 'N/A',
             'mm.core.humanreadablesize': '{{size}} {{unit}}',
