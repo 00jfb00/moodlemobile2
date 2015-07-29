@@ -52,7 +52,7 @@ describe('$mmConfig', function() {
 
         httpBackend.flush();
         timeout.flush();
-        setTimeout(timeout.flush, 100);
+        setTimeout(timeout.flush, 500); // This one failed sometimes with 100ms.
     });
 
     it('config from JSON cannot be overridden', function(done) {

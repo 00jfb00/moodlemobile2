@@ -27,17 +27,20 @@ angular.module('mm.core')
         currentLanguage; // Save current language in a variable to speed up the get function.
 
     /**
-     * Register a folder to search language files into it.
+     * Change current language.
      *
      * @module mm.core
      * @ngdoc method
-     * @name $mmLang#registerLanguageFolder
-     * @param  {String} path Path of the folder to use.
-     * @return {Promise}     Promise resolved when file is loaded.
+     * @name $mmLang#changeCurrentLanguage
+     * @param {String} language New language to use.
+     * @return {Promise}        Promise resolved when the change is finished.
      */
-    self.registerLanguageFolder = function(path) {
-        $translatePartialLoader.addPart(path);
-        return $translate.refresh();
+    self.changeCurrentLanguage = function(language) {
+        var p1 = $translate.use(language),
+            p2 = $mmConfig.set('current_language', language);
+        moment.locale(language);
+        currentLanguage = language;
+        return $q.all([p1, p2]);
     };
 
     /**
@@ -101,20 +104,17 @@ angular.module('mm.core')
     };
 
     /**
-     * Change current language.
+     * Register a folder to search language files into it.
      *
      * @module mm.core
      * @ngdoc method
-     * @name $mmLang#changeCurrentLanguage
-     * @param {String} language New language to use.
-     * @return {Promise}        Promise resolved when the change is finished.
+     * @name $mmLang#registerLanguageFolder
+     * @param  {String} path Path of the folder to use.
+     * @return {Promise}     Promise resolved when file is loaded.
      */
-    self.changeCurrentLanguage = function(language) {
-        var p1 = $translate.use(language),
-            p2 = $mmConfig.set('current_language', language);
-        moment.locale(language);
-        currentLanguage = language;
-        return $q.all([p1, p2]);
+    self.registerLanguageFolder = function(path) {
+        $translatePartialLoader.addPart(path);
+        return $translate.refresh();
     };
 
     /**
