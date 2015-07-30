@@ -84,7 +84,7 @@ angular.module('mm.core')
         return $mmSitesManager.getSite(siteid).then(function(site) {
             var presets = {},
                 data = {
-                    userid: userid || site.getUserId(),
+                    userid: userid || site.getUserId(),
                     courseid: courseid
                 };
             if (refresh) {
