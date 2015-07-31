@@ -24,7 +24,8 @@ describe('$mmDB', function() {
                 keyPath: 'id',
                 indexes: [
                     {
-                        name: 'name',
+                        name: 'name'
+                    }, {
                         name: 'type'
                     }
                 ]
@@ -50,11 +51,14 @@ describe('$mmDB', function() {
     }));
 
     it('a DB name can be retrieved', function() {
+        console.log(' ***** START $mmDB getName ***** ');
         var db = mmDB.getDB(dbname, dbschema, dboptions);
         expect(db.getName()).toEqual(dbname);
+        console.log(' ***** FINISH $mmDB getName ***** ');
     });
 
     it('DB allows inserting/retrieving entries by ID', function(done) {
+        console.log(' ***** START $mmDB insert/get - by id ***** ');
         var db = mmDB.getDB(dbname, dbschema, dboptions),
             randomid = 'randomid' + Math.round(Math.random() * 1000000),
             randomname = 'randomname' + Math.round(Math.random() * 1000000);
@@ -72,6 +76,7 @@ describe('$mmDB', function() {
         }).finally(function() {
             // Clear DB to have a clean DB for next tests (or re-execute this one).
             db.removeAll(storeName).then(function() {
+                console.log(' ***** FINISH $mmDB insert/get - by id ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
@@ -81,6 +86,7 @@ describe('$mmDB', function() {
     });
 
     it('DB allows removing all entries in a store', function(done) {
+        console.log(' ***** START $mmDB removeAll ***** ');
         var db = mmDB.getDB(dbname, dbschema, dboptions),
             randomid = 'randomid' + Math.round(Math.random() * 1000000),
             randomname = 'randomname' + Math.round(Math.random() * 1000000);
@@ -92,7 +98,7 @@ describe('$mmDB', function() {
             return db.removeAll(storeName).then(function() {
                 // Try to get the stored entry.
                 setTimeout(timeout.flush, 100);
-                return db.get(storeName, randomid).then(function(entry) {
+                return db.get(storeName, randomid).then(function() {
                     // Entry shouldn't be there, test failed.
                     expect(true).toEqual(false);
                 }).catch(function() {
@@ -103,6 +109,7 @@ describe('$mmDB', function() {
             // Failed test.
             expect(false).toEqual(true);
         }).finally(function() {
+            console.log(' ***** FINISH $mmDB removeAll ***** ');
             done();
         });
 
@@ -110,6 +117,7 @@ describe('$mmDB', function() {
     });
 
     it('DB allows counting all entries in a store, or count entries with some conditions', function(done) {
+        console.log(' ***** START $mmDB count ***** ');
         var db = mmDB.getDB(dbname, dbschema, dboptions),
             promises = [],
             idsUsed = [];
@@ -144,6 +152,7 @@ describe('$mmDB', function() {
         }).finally(function() {
             // Clear DB to have a clean DB for next tests (or re-execute this one).
             db.removeAll(storeName).then(function() {
+                console.log(' ***** FINISH $mmDB count ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
@@ -153,6 +162,7 @@ describe('$mmDB', function() {
     });
 
     it('DB allows querying and ordering', function(done) {
+        console.log(' ***** START $mmDB query/where ***** ');
         var db = mmDB.getDB(dbname, dbschema, dboptions),
             promises = [],
             idsUsed = [];
@@ -191,6 +201,7 @@ describe('$mmDB', function() {
         }).finally(function() {
             // Clear DB to have a clean DB for next tests (or re-execute this one).
             db.removeAll(storeName).then(function() {
+                console.log(' ***** FINISH $mmDB query/where ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
@@ -199,4 +210,4 @@ describe('$mmDB', function() {
         setTimeout(timeout.flush, 100);
     });
 
-})
+});

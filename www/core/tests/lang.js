@@ -71,17 +71,22 @@ describe('$mmLang', function() {
     describe('getCurrentLanguage', function() {
 
         it('should return english as current language if it hasn\'t been set', function(done) {
+            console.log(' ***** START $mmLang getCurrentLanguage - default ***** ');
             var promise;
             promise = $mmLang.getCurrentLanguage().then(function(language) {
                 expect(language).toEqual('en');
             }).catch(function() {
                 expect(true).toEqual(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmLang getCurrentLanguage - default ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
 
         it('should return current language from config if it has been set', function(done) {
+            console.log(' ***** START $mmLang getCurrentLanguage - set ***** ');
             var promise;
 
             configs['current_language'] = 'es';
@@ -91,6 +96,7 @@ describe('$mmLang', function() {
                 expect(true).toEqual(false);
             }).finally(function() {
                 delete configs['current_language'];
+                console.log(' ***** FINISH $mmLang getCurrentLanguage - set ***** ');
                 done();
             });
 
@@ -102,6 +108,7 @@ describe('$mmLang', function() {
     describe('changeCurrentLanguage', function() {
 
         it('should change current language', function(done) {
+            console.log(' ***** START $mmLang changeCurrentLanguage ***** ');
             var promise;
             // Change language to spanish.
             promise = $mmLang.changeCurrentLanguage('es').then(function() {
@@ -129,6 +136,7 @@ describe('$mmLang', function() {
                 expect(true).toEqual(false);
             }).finally(function() {
                 delete configs['current_language'];
+                console.log(' ***** FINISH $mmLang changeCurrentLanguage ***** ');
                 done();
             });
 
@@ -141,6 +149,7 @@ describe('$mmLang', function() {
     describe('registerLanguageFolder', function() {
 
         it('should be able to add extra language files to translation table', function(done) {
+            console.log(' ***** START $mmLang registerLanguageFolder ***** ');
             var p1, p2;
             // Check that extra strings are not loaded.
             p1 = $translate('extra');
@@ -164,8 +173,9 @@ describe('$mmLang', function() {
                 });
 
             }).catch(function() {
-                expect(true).toEqual(false);
+                expect(true).toEqual(falfse);
             }).finally(function() {
+                console.log(' ***** FINISH $mmLang registerLanguageFolder ***** ');
                 done();
             });
 
@@ -177,25 +187,16 @@ describe('$mmLang', function() {
     describe('translateAndReject', function() {
 
         it('should be able to return a rejected promise with a translated string', function(done) {
-            try {
-                console.log(' ***** START $mmLang translateAndReject ***** ');
-                $mmLang.translateAndReject('first').then(function() {
-                    expect(false).toEqual(true);
-                }).catch(function(string) {
-                    expect(string).toEqual('First');
-                }).finally(function() {
-                    console.log(' ***** FINISH $mmLang translateAndReject ***** ');
-                    done();
-                });
-                $timeout.flush();
-            } catch(ex) {
-                // Sometimes an empty exception {} is thrown after the test has finished. Filter those errors.
-                if (ex && typeof ex == 'object' && Object.keys(ex).length > 0) {
-                    console.log(ex);
-                    expect(false).toEqual(true);
-                    done();
-                }
-            }
+            console.log(' ***** START $mmLang translateAndReject ***** ');
+            $mmLang.translateAndReject('first').then(function() {
+                expect(false).toEqual(true);
+            }).catch(function(string) {
+                expect(string).toEqual('First');
+            }).finally(function() {
+                console.log(' ***** FINISH $mmLang translateAndReject ***** ');
+                done();
+            });
+            $timeout.flush();
         });
 
     });
@@ -203,27 +204,18 @@ describe('$mmLang', function() {
     describe('translateAndRejectDeferred', function() {
 
         it('should be able to reject a deferred with a translated string', function(done) {
-            try {
-                console.log(' ***** START $mmLang translateAndRejectDeferred ***** ');
-                var deferred = $q.defer();
-                $mmLang.translateAndRejectDeferred(deferred, 'first');
-                deferred.promise.then(function() {
-                    expect(false).toEqual(true);
-                }).catch(function(string) {
-                    expect(string).toEqual('First');
-                }).finally(function() {
-                    console.log(' ***** FINISH $mmLang translateAndRejectDeferred ***** ');
-                    done();
-                });
-                $timeout.flush();
-            } catch(ex) {
-                // Sometimes an empty exception {} is thrown after the test has finished. Filter those errors.
-                if (ex && typeof ex == 'object' && Object.keys(ex).length > 0) {
-                    console.log(ex);
-                    expect(false).toEqual(true);
-                    done();
-                }
-            }
+            console.log(' ***** START $mmLang translateAndRejectDeferred ***** ');
+            var deferred = $q.defer();
+            $mmLang.translateAndRejectDeferred(deferred, 'first');
+            deferred.promise.then(function() {
+                expect(false).toEqual(true);
+            }).catch(function(string) {
+                expect(string).toEqual('First');
+            }).finally(function() {
+                console.log(' ***** FINISH $mmLang translateAndRejectDeferred ***** ');
+                done();
+            });
+            $timeout.flush();
         });
 
     });

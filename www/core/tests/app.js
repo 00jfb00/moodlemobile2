@@ -49,6 +49,7 @@ describe('$mmApp', function() {
     describe('createState', function() {
 
         it('should be able to create a new state', function() {
+            console.log(' ***** START $mmApp createState ***** ');
             var stateName = 'my-fake-state',
                 url = '/myFakeStateUrl',
                 state;
@@ -57,6 +58,7 @@ describe('$mmApp', function() {
             expect(state).not.toBe(undefined);
             expect(state).not.toBe(null);
             expect(state.url).toEqual(url);
+            console.log(' ***** FINISH $mmApp createState ***** ');
         });
 
     });
@@ -64,9 +66,11 @@ describe('$mmApp', function() {
     describe('getDB', function() {
 
         it('should return the app DB', function() {
+            console.log(' ***** START $mmApp getDB ***** ');
             var db = $mmApp.getDB();
             expect(db).not.toBe(undefined);
             expect(db.getName()).toEqual('MoodleMobile');
+            console.log(' ***** FINISH $mmApp getDB ***** ');
         });
 
     });
@@ -74,6 +78,7 @@ describe('$mmApp', function() {
     describe('getSchema', function() {
 
         it('should return the DB schema', function() {
+            console.log(' ***** START $mmApp getSchema ***** ');
             var schema = $mmApp.getSchema(),
                 found = false;
             expect(schema).not.toBe(undefined);
@@ -83,6 +88,7 @@ describe('$mmApp', function() {
                 }
             });
             expect(found).toEqual(true);
+            console.log(' ***** FINISH $mmApp getSchema ***** ');
         });
 
     });
@@ -90,12 +96,16 @@ describe('$mmApp', function() {
     describe('initProcess', function() {
 
         it('should finish', function(done) {
+            console.log(' ***** START $mmApp initProcess ***** ');
             var promise = $mmApp.initProcess();
             promise.then(function() {
                 // Success.
             }).catch(function() {
                 expect(true).toEqual(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmApp initProcess ***** ');
+                done();
+            });
 
             $timeout.flush();
             setTimeout($timeout.flush, 100);
@@ -106,8 +116,10 @@ describe('$mmApp', function() {
     describe('isOnline', function() {
 
         it('should return true in browser', function() {
+            console.log(' ***** START $mmApp isOnline ***** ');
             // In browser it returns true because we're not able to check connection.
             expect($mmApp.isOnline()).toEqual(true);
+            console.log(' ***** FINISH $mmApp isOnline ***** ');
         });
 
     });
@@ -115,8 +127,10 @@ describe('$mmApp', function() {
     describe('isNetworkAccessLimited', function() {
 
         it('should return false in browser', function() {
-            // In browser it returns true because we're not able to check connection.
+            console.log(' ***** START $mmApp isNetworkAccessLimited ***** ');
+            // In browser it returns false because we're not able to check connection.
             expect($mmApp.isNetworkAccessLimited()).toEqual(false);
+            console.log(' ***** FINISH $mmApp isNetworkAccessLimited ***** ');
         });
 
     });
@@ -124,6 +138,7 @@ describe('$mmApp', function() {
     describe('isReady', function() {
 
         it('should be able to tell if app is ready', function() {
+            console.log(' ***** START $mmApp isReady ***** ');
             // False at start.
             expect($mmApp.isReady()).toEqual(false);
 
@@ -135,6 +150,7 @@ describe('$mmApp', function() {
                 return deferred.promise;
             };
             expect($mmApp.isReady()).toEqual(true);
+            console.log(' ***** FINISH $mmApp isReady ***** ');
         });
 
     });
@@ -142,6 +158,7 @@ describe('$mmApp', function() {
     describe('ready', function() {
 
         it('should be resolved when app is ready', function(done) {
+            console.log(' ***** START $mmApp ready ***** ');
             var deferred = $q.defer(),
                 promise;
 
@@ -155,7 +172,10 @@ describe('$mmApp', function() {
                 // Success.
             }).catch(function() {
                 expect(true).toEqual(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmApp ready ***** ');
+                done();
+            });
 
             deferred.resolve();
             $timeout.flush();

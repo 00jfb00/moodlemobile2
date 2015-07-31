@@ -31,24 +31,30 @@ describe('$mmConfig', function() {
     }));
 
     it('config from JSON can be read from config.json', function(done) {
+        console.log(' ***** START $mmConfig get - from file ***** ');
         mmConfig.get('app_id').then(function(data) {
             expect(data).toEqual('com.moodle.moodlemobile');
         }).catch(function() {
             expect(false).toEqual(true);
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig get - from file ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
     });
 
     it('default value is returned if key not found', function(done) {
+        console.log(' ***** START $mmConfig get - default value ***** ');
         mmConfig.get('invalid_key', 'default_value').then(function(data) {
             expect(data).toEqual('default_value');
         }).catch(function() {
             expect(false).toEqual(true);
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig get - default value ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
@@ -56,25 +62,31 @@ describe('$mmConfig', function() {
     });
 
     it('config from JSON cannot be overridden', function(done) {
+        console.log(' ***** START $mmConfig set - no override ***** ');
         mmConfig.set('app_id').then(function() {
             expect(false).toEqual(true);
         }, function() {
             // Success.
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig set - no override ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
     });
 
     it('config can be saved to DB', function(done) {
+        console.log(' ***** START $mmConfig set - sucessful ***** ');
         randid = 'randomkey' + Math.round(Math.random() * 1000000);
         mmConfig.set(randid, 'moodler').then(function() {
             // Success.
         }, function() {
             expect(false).toEqual(true);
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig set - sucessful ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
@@ -82,12 +94,15 @@ describe('$mmConfig', function() {
     });
 
     it('config can be retrieved from DB', function(done) {
+        console.log(' ***** START $mmConfig get - from DB ***** ');
         mmConfig.get(randid).then(function(data) {
             expect(data).toEqual('moodler');
         }, function() {
             expect(false).toEqual(true);
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig get - from DB ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
@@ -95,19 +110,23 @@ describe('$mmConfig', function() {
     });
 
     it('config from JSON cannot be deleted', function(done) {
+        console.log(' ***** START $mmConfig delete - from file ***** ');
         mmConfig.delete('app_id').then(function() {
             expect(false).toEqual(true);
         }, function() {
             // Success.
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig delete - from file ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
     });
 
     it('config can be deleted from DB', function(done) {
-        mmConfig.delete(randid).then(function(data) {
+        console.log(' ***** START $mmConfig delete - from DB ***** ');
+        mmConfig.delete(randid).then(function() {
             // Check it was deleted.
             setTimeout(timeout.flush, 100);
             return mmConfig.get(randid).then(function() {
@@ -118,12 +137,14 @@ describe('$mmConfig', function() {
             });
         }, function() {
             expect(false).toEqual(true);
-        })
-        .finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmConfig delete - from DB ***** ');
+            done();
+        });
 
         httpBackend.flush();
         timeout.flush();
         setTimeout(timeout.flush, 100);
     });
 
-})
+});

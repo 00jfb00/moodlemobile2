@@ -42,6 +42,7 @@ describe('$mmText', function() {
     describe('bytesToSize', function() {
 
         it('should convert numbers to human readable sizes', function() {
+            console.log(' ***** START $mmText bytesToSize ***** ');
             expect($mmText.bytesToSize(1)).toEqual('1 bytes');
             expect($mmText.bytesToSize(10)).toEqual('10 bytes');
             expect($mmText.bytesToSize(1024)).toEqual('1 KB');
@@ -52,6 +53,7 @@ describe('$mmText', function() {
             expect($mmText.bytesToSize(12345678)).toEqual('11.77 MB');
             expect($mmText.bytesToSize(107360868001)).toEqual('99.99 GB');
             expect($mmText.bytesToSize(700000000000000)).toEqual('636.65 TB');
+            console.log(' ***** FINISH $mmText bytesToSize ***** ');
         });
 
         it('should return not applicable when the size is not a valid number', function() {
@@ -64,6 +66,7 @@ describe('$mmText', function() {
     describe('cleanTags', function() {
 
         it('should remove HTML tags', function() {
+            console.log(' ***** START $mmText cleanTags - remove ***** ');
             var texts = [
                 {
                     before: '<div class="test"><img src="#" />Oranges are good.</div><span >Really good.</span>',
@@ -78,11 +81,14 @@ describe('$mmText', function() {
             angular.forEach(texts, function(text) {
                 expect($mmText.cleanTags(text.before)).toEqual(text.after);
             });
+            console.log(' ***** FINISH $mmText cleanTags - remove ***** ');
         });
 
         it('can convert new lines to <br />', function() {
+            console.log(' ***** START $mmText cleanTags - new lines ***** ');
             expect($mmText.cleanTags('<p>Some \n text\n</p>')).toEqual('Some <br /> text<br />');
             expect($mmText.cleanTags('<p>Some \n text\n</p>', true)).toEqual('Some   text ');
+            console.log(' ***** FINISH $mmText cleanTags - new lines ***** ');
         });
 
     });
@@ -90,10 +96,12 @@ describe('$mmText', function() {
     describe('replaceNewLines', function() {
 
         it('should replace new lines with something else', function() {
+            console.log(' ***** START $mmText replaceNewLines ***** ');
             expect($mmText.replaceNewLines('a\nb', 'X')).toEqual('aXb');
             expect($mmText.replaceNewLines('a\rb', 'X')).toEqual('aXb');
             expect($mmText.replaceNewLines('a\r\nb', 'X')).toEqual('aXb');
             expect($mmText.replaceNewLines('a\r\nb\r\n\n\r\r\n', '')).toEqual('ab');
+            console.log(' ***** FINISH $mmText replaceNewLines ***** ');
         });
 
     });
@@ -109,6 +117,7 @@ describe('$mmText', function() {
         }));
 
         it('should remove multi-lang tags', function(done) {
+            console.log(' ***** START $mmText formatText - multilang ***** ');
             var expected = '<p>Some English content</p>\n',
                 promise = $mmText.formatText(text);
 
@@ -116,12 +125,16 @@ describe('$mmText', function() {
                 expect(result).toEqual(expected);
             }).catch(function() {
                 expect(true).toBe(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmText formatText - multilang ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
 
         it('can remove HTML tags', function(done) {
+            console.log(' ***** START $mmText formatText - remove HTML ***** ');
             var expected = 'Some English content<br />',
                 promise = $mmText.formatText(text, true);
 
@@ -129,12 +142,16 @@ describe('$mmText', function() {
                 expect(result).toEqual(expected);
             }).catch(function() {
                 expect(true).toBe(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmText formatText - remove HTML ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
 
         it('can remove new lines', function(done) {
+            console.log(' ***** START $mmText formatText - remove new lines ***** ');
             var expected = 'Some English content ',
                 promise = $mmText.formatText(text, true, true);
 
@@ -142,12 +159,16 @@ describe('$mmText', function() {
                 expect(result).toEqual(expected);
             }).catch(function() {
                 expect(true).toBe(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmText formatText - remove new lines ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
 
         it('can shorten the text', function(done) {
+            console.log(' ***** START $mmText formatText - shorten ***** ');
             var expected = 'Some English&hellip;',
                 promise = $mmText.formatText(text, true, true, 13);
 
@@ -155,19 +176,24 @@ describe('$mmText', function() {
                 expect(result).toEqual(expected);
             }).catch(function() {
                 expect(true).toBe(false);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmText formatText - shorten ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
 
     });
 
-    describe('shortText', function() {
+    describe('shortenText', function() {
 
         it('shortens the text when needed', function() {
+            console.log(' ***** START $mmText shortenText ***** ');
             expect($mmText.shortenText('Hello World!', 100)).toEqual('Hello World!');
             expect($mmText.shortenText('Hello World!', 5)).toEqual('Hello&hellip;');
             expect($mmText.shortenText('Hello World!', 10)).toEqual('Hello&hellip;');
+            console.log(' ***** FINISH $mmText shortenText ***** ');
         });
 
     });
@@ -191,7 +217,10 @@ describe('$mmText', function() {
                 expect(result).toEqual(expected);
             }).catch(function() {
                 expect(false).toBe(true);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmText treatMultilangTags - extract content ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
@@ -206,15 +235,18 @@ describe('$mmText', function() {
                 expect(result).toEqual(expected);
             }).catch(function() {
                 expect(false).toBe(true);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** START $mmText treatMultilangTags - lang ***** ');
+                done();
+            });
 
             $timeout.flush();
         });
 
-        it('should get first language if no match found', function(done) {
-            console.log(' ***** START $mmText treatMultilangTags - no match ***** ');
-            var text = 'My language is <lang lang="es">Spanish</lang><lang lang="fr">Français</lang>',
-                expected = 'My language is Spanish',
+        it('should ignore content for another language', function(done) {
+            console.log(' ***** START $mmText treatMultilangTags - ignore others ***** ');
+            var text ='<p>lorem ipsum<lang lang="fr">Français</lang> dolor sit amet.',
+                expected = '<p>lorem ipsum dolor sit amet.',
                 promise = $mmText.treatMultilangTags(text);
 
             promise.then(function(result) {

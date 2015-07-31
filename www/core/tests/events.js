@@ -27,6 +27,7 @@ describe('$mmEvents', function() {
     describe('regular events', function() {
 
         it('should be able to trigger and receive a single event', function() {
+            console.log(' ***** START $mmEvents regular - trigger/receive ***** ');
             var received = false,
                 eventName = 'my_fake_test_event',
                 observer;
@@ -37,9 +38,11 @@ describe('$mmEvents', function() {
             $mmEvents.trigger(eventName);
             expect(received).toEqual(true);
             observer.off();
+            console.log(' ***** FINISH $mmEvents regular - trigger/receive ***** ');
         });
 
         it('should be able to send data with events', function() {
+            console.log(' ***** START $mmEvents regular - data sent ***** ');
             var received = false,
                 eventName = 'my_fake_test_event',
                 observer;
@@ -51,9 +54,11 @@ describe('$mmEvents', function() {
             $mmEvents.trigger(eventName, true);
             expect(received).toEqual(true);
             observer.off();
+            console.log(' ***** FINISH $mmEvents regular - data sent ***** ');
         });
 
         it('should be able to unregister observers', function() {
+            console.log(' ***** START $mmEvents regular - data sent ***** ');
             var received = false,
                 eventName = 'my_fake_test_event',
                 observer;
@@ -70,9 +75,11 @@ describe('$mmEvents', function() {
             observer.off();
             $mmEvents.trigger(eventName);
             expect(received).toEqual(false);
+            console.log(' ***** FINISH $mmEvents regular - data sent ***** ');
         });
 
         it('should notify only the right observers', function() {
+            console.log(' ***** START $mmEvents regular - only right observers ***** ');
             var receivedA = false,
                 receivedB = false,
                 receivedC = false,
@@ -107,9 +114,11 @@ describe('$mmEvents', function() {
             observerA.off();
             observerB.off();
             observerC.off();
+            console.log(' ***** FINISH $mmEvents regular - only right observers ***** ');
         });
 
         it('should not notify observers set after event is triggered', function() {
+            console.log(' ***** START $mmEvents regular - set after trigger ***** ');
             var received = false,
                 eventName = 'my_fake_unique_event',
                 observer;
@@ -121,6 +130,7 @@ describe('$mmEvents', function() {
             });
             expect(received).toEqual(false);
             observer.off();
+            console.log(' ***** FINISH $mmEvents regular - set after trigger ***** ');
         });
 
     });
@@ -128,6 +138,7 @@ describe('$mmEvents', function() {
     describe('unique events', function() {
 
         it('should be able to receive a unique event triggered after observer is set', function() {
+            console.log(' ***** START $mmEvents unique - trigger after set ***** ');
             var received = false,
                 eventName = 'my_fake_unique_event',
                 observer;
@@ -138,9 +149,11 @@ describe('$mmEvents', function() {
             $mmEvents.triggerUnique(eventName);
             expect(received).toEqual(true);
             observer.off();
+            console.log(' ***** FINISH $mmEvents unique - trigger after set ***** ');
         });
 
         it('should trigger unique events only once', function() {
+            console.log(' ***** START $mmEvents unique - only once ***** ');
             var received = false,
                 eventName = 'my_fake_unique_event',
                 observer;
@@ -158,9 +171,11 @@ describe('$mmEvents', function() {
             expect(received).toEqual(false);
 
             observer.off();
+            console.log(' ***** FINISH $mmEvents unique - only once ***** ');
         });
 
         it('should notify observers set after unique event is triggered', function() {
+            console.log(' ***** START $mmEvents unique - set after trigger ***** ');
             var received = false,
                 eventName = 'my_fake_unique_event',
                 observer;
@@ -172,6 +187,7 @@ describe('$mmEvents', function() {
             });
             expect(received).toEqual(true);
             observer.off();
+            console.log(' ***** FINISH $mmEvents unique - set after trigger ***** ');
         });
 
     });

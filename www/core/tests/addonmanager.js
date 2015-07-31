@@ -29,9 +29,11 @@ describe('$mmAddonManager', function() {
     describe('isAvailable', function() {
 
         it('should be able to detect available services', function() {
+            console.log(' ***** START $mmAddonManager isAvailable ***** ');
             expect($mmAddonManager.isAvailable()).toEqual(false);
             expect($mmAddonManager.isAvailable('$mmUtil')).toEqual(true); // Test with core because addons can be removed.
             expect($mmAddonManager.isAvailable('$mmSomeFakeService')).toEqual(false);
+            console.log(' ***** FINISH $mmAddonManager isAvailable ***** ');
         });
 
     });
@@ -39,9 +41,11 @@ describe('$mmAddonManager', function() {
     describe('get', function() {
 
         it('should be able to get available services', function() {
+            console.log(' ***** START $mmAddonManager get ***** ');
             expect($mmAddonManager.get()).toEqual(undefined);
             expect($mmAddonManager.get('$mmUtil')).toEqual($mmUtil); // Test with core because addons can be removed.
             expect($mmAddonManager.get('$mmSomeFakeService')).toEqual(undefined);
+            console.log(' ***** FINISH $mmAddonManager get ***** ');
         });
 
     });

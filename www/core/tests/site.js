@@ -53,25 +53,32 @@ describe('$mmSite', function() {
     }));
 
     it('a user is not logged in by default', function() {
+        console.log(' ***** START $mmSite isLoggedIn - not by default ***** ');
         expect(mmSite.isLoggedIn()).toEqual(false);
+        console.log(' ***** FINISH $mmSite isLoggedIn - not by default ***** ');
     });
 
     it('a site can be logged in to', function() {
+        console.log(' ***** START $mmSite isLoggedIn - can log in ***** ');
         var site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', {});
         mmSitesManager.setCurrentSite(site);
         expect(mmSite.isLoggedIn()).toEqual(true);
         expect(mmSite.getId()).toEqual('siteId');
+        console.log(' ***** FINISH $mmSite isLoggedIn - can log in ***** ');
     });
 
     it('a site can be logged out', function() {
+        console.log(' ***** START $mmSite isLoggedIn - can logout ***** ');
         var site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', {});
         mmSitesManager.setCurrentSite(site);
         expect(mmSite.isLoggedIn()).toEqual(true);
         mmSitesManager.logout();
         expect(mmSite.isLoggedIn()).toEqual(false);
+        console.log(' ***** FINISH $mmSite isLoggedIn - can logout ***** ');
     });
 
     it('a site can return details about its config', function() {
+        console.log(' ***** START $mmSite get data ***** ');
         var infos = {a: 'b', c: 4, userid: 12},
             site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', infos);
         mmSitesManager.setCurrentSite(site);
@@ -81,9 +88,11 @@ describe('$mmSite', function() {
         expect(mmSite.getToken()).toEqual('abc');
         expect(mmSite.getInfo()).toEqual(infos);
         expect(mmSite.getUserId()).toEqual(12);
+        console.log(' ***** FINISH $mmSite get data ***** ');
     });
 
     it('site id, token and info can be modified', function() {
+        console.log(' ***** START $mmSite modify id, token and info ***** ');
         var infos = {a: 'b', c: 4, userid: 12},
             site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', infos);
         mmSitesManager.setCurrentSite(site);
@@ -100,9 +109,11 @@ describe('$mmSite', function() {
         expect(mmSite.getId()).toEqual('newSiteId');
         expect(mmSite.getToken()).toEqual('newToken');
         expect(mmSite.getInfo()).toEqual(infos);
+        console.log(' ***** FINISH $mmSite modify id, token and info ***** ');
     });
 
     it('a site knows about transfer parameters', function() {
+        console.log(' ***** START $mmSite transfer params ***** ');
         var infos = {
                 uploadfiles: true,
                 downloadfiles: true,
@@ -133,9 +144,11 @@ describe('$mmSite', function() {
         mmSite.setInfo(infos);
 
         expect(mmSite.canAccessMyFiles()).toEqual(true);
+        console.log(' ***** FINISH $mmSite transfer params ***** ');
     });
 
     it('a site knows which web services are available', function() {
+        console.log(' ***** START $mmSite wsAvailable ***** ');
         var infos = {
                 functions: [
                     { name: 'core_some_function' },
@@ -153,9 +166,11 @@ describe('$mmSite', function() {
 
         expect(mmSite.wsAvailable('core_invalid_function', true)).toEqual(false);
         expect(mmSite.wsAvailable('core_invalid_function', true)).toEqual(false);
+        console.log(' ***** FINISH $mmSite wsAvailable ***** ');
     });
 
     it('stores can be added to site DB', function(done) {
+        console.log(' ***** START $mmSite stores added ***** ');
         // At the start of the test we created a new fake store. Let's try to insert something in it to check it succeeded.
         var site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', {}),
             db = site.getDb();
@@ -171,12 +186,16 @@ describe('$mmSite', function() {
         }).catch(function() {
             // Failed test.
             expect(false).toEqual(true);
-        }).finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmSite stores added ***** ');
+            done();
+        });
 
         setTimeout(timeout.flush, 100);
     });
 
     it('a site db can be deleted', function(done) {
+        console.log(' ***** START $mmSite site db deleted ***** ');
         var site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', {}),
             db = site.getDb();
 
@@ -204,12 +223,16 @@ describe('$mmSite', function() {
         }).catch(function() {
             // Failed test.
             expect(false).toEqual(true);
-        }).finally(done);
+        }).finally(function() {
+            console.log(' ***** FINISH $mmSite site db deleted ***** ');
+            done();
+        });
 
         setTimeout(timeout.flush, 100);
     });
 
     it('a site can get data from WS if function is available', function(done) {
+        console.log(' ***** START $mmSite read WS ***** ');
         var infos = {
                 functions: [] // No functions available.
             },
@@ -231,13 +254,14 @@ describe('$mmSite', function() {
 
             return mmSite.read('some_read_ws', {}).then(function(data) {
                 expect(data.success).toEqual(true);
-            }).catch(function(error) {
+            }).catch(function() {
                 // Failed test, call should fail since function isn't available.
                 expect(false).toEqual(true);
             });
         }).finally(function() {
             // Delete DB to have a clean DB for next tests (or re-execute this one).
             site.deleteDB().finally(function() {
+                console.log(' ***** FINISH $mmSite read WS ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
@@ -248,6 +272,7 @@ describe('$mmSite', function() {
     });
 
     it('a site can get data from cache', function(done) {
+        console.log(' ***** START $mmSite read cache ***** ');
         var infos = {
                 functions: [
                     {name: 'new_read_ws'}
@@ -278,26 +303,27 @@ describe('$mmSite', function() {
                 return mmSite.read('new_read_ws', {}, {getFromCache: false, emergencyCache: false}).then(function() {
                     // Failed test, request should have failed.
                     expect(false).toEqual(true);
-                }).catch(function(error) {
+                }).catch(function() {
                     // We've verified that WS is now failing. Let's try to get the response from cache.
 
                     setTimeout(timeout.flush, 100);
 
                     return mmSite.read('new_read_ws', {}).then(function(data) {
                         expect(data.success).toBe(true);
-                    }).catch(function(error) {
+                    }).catch(function() {
                         // Failed test, request should have succeeded.
                         expect(false).toEqual(true);
                     });
                 });
             });
 
-        }).catch(function(error) {
+        }).catch(function() {
             // Failed test, request should be successful.
             expect(false).toEqual(true);
         }).finally(function() {
             // Delete DB to have a clean DB for next tests (or re-execute this one).
             site.deleteDB().finally(function() {
+                console.log(' ***** FINISH $mmSite read cache ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
@@ -308,6 +334,7 @@ describe('$mmSite', function() {
     });
 
     it('site write doesn\'t store data in cache', function(done) {
+        console.log(' ***** START $mmSite write - doesn\'t store cache ***** ');
         var infos = {
                 functions: [
                     {name: 'new_write_ws'}
@@ -328,19 +355,20 @@ describe('$mmSite', function() {
 
             setTimeout(timeout.flush, 100); // We don't need httpBackend.flush, I don't know why :S
 
-            return mmSite.write('new_write_ws', {}).then(function(data) {
+            return mmSite.write('new_write_ws', {}).then(function() {
                 // Failed test, request should have failed.
                 expect(false).toEqual(true);
-            }).catch(function(error) {
+            }).catch(function() {
                 // Success test.
             });
 
-        }).catch(function(error) {
+        }).catch(function() {
             // Failed test, request should be successful.
             expect(false).toEqual(true);
         }).finally(function() {
             // Delete DB to have a clean DB for next tests (or re-execute this one).
             site.deleteDB().finally(function() {
+                console.log(' ***** FINISH $mmSite write - doesn\'t store cache ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
@@ -351,6 +379,7 @@ describe('$mmSite', function() {
     });
 
     it('a site cache can be invalidated', function(done) {
+        console.log(' ***** START $mmSite invalidate cache ***** ');
         var infos = {
                 functions: [
                     {name: 'new_read_ws'}
@@ -390,19 +419,21 @@ describe('$mmSite', function() {
                     });
                 });
             });
-        }).catch(function(error) {
+        }).catch(function() {
             // Failed test, request should be successful.
             expect(false).toEqual(true);
         }).finally(function() {
             // Delete DB to have a clean DB for next tests (or re-execute this one).
             site.deleteDB().finally(function() {
+                console.log(' ***** FINISH $mmSite invalidate cache ***** ');
                 done();
             });
             setTimeout(timeout.flush, 100);
         });
 
-        timeout.flush();
-        setTimeout(httpBackend.flush, 100);
+        setTimeout(function() {
+            httpBackend.flush();
+        }, 100);
     });
 
 });

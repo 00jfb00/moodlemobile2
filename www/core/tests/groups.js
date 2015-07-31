@@ -104,12 +104,16 @@ describe('$mmGroups', function() {
     describe('getUserGroups', function() {
 
         it('should return current site and current user groups if not defined', function(done) {
+            console.log(' ***** START $mmGroups getUserGroups - current ***** ');
             var promise = $mmGroups.getUserGroups([1, 2]);
             promise.then(function(groups) {
                 expect(groups).toEqual(currentSiteGroupsC1.concat(currentSiteGroupsC2));
             }).catch(function() {
                 expect(false).toEqual(true);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmGroups getUserGroups - current ***** ');
+                done();
+            });
 
             setTimeout(function() {
                 $httpBackend.flush();
@@ -118,24 +122,32 @@ describe('$mmGroups', function() {
         });
 
         it('can return other site groups', function(done) {
+            console.log(' ***** START $mmGroups getUserGroups - other site ***** ');
             var promise = $mmGroups.getUserGroups([1], false, otherSite.id);
             promise.then(function(groups) {
                 expect(groups).toEqual(otherSiteGroupsC1);
             }).catch(function() {
                 expect(false).toEqual(true);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmGroups getUserGroups - other site ***** ');
+                done();
+            });
 
             setTimeout($timeout.flush, 50);
             setTimeout($httpBackend.flush, 100);
         });
 
         it('can return groups from a subset of courses', function(done) {
+            console.log(' ***** START $mmGroups getUserGroups - subset ***** ');
             var promise = $mmGroups.getUserGroups([1]);
             promise.then(function(groups) {
                 expect(groups).toEqual(currentSiteGroupsC1);
             }).catch(function() {
                 expect(false).toEqual(true);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmGroups getUserGroups - subset ***** ');
+                done();
+            });
 
             setTimeout(function() {
                 $httpBackend.flush();
@@ -144,12 +156,16 @@ describe('$mmGroups', function() {
         });
 
         it('can return groups from another user in a certain site', function(done) {
+            console.log(' ***** START $mmGroups getUserGroups - other user ***** ');
             var promise = $mmGroups.getUserGroups([1], false, undefined, 10);
             promise.then(function(groups) {
                 expect(groups).toEqual(currentSiteUser2GroupsC1);
             }).catch(function() {
                 expect(false).toEqual(true);
-            }).finally(done);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmGroups getUserGroups - other user ***** ');
+                done();
+            });
 
             setTimeout(function() {
                 $httpBackend.flush();
