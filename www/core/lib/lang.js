@@ -157,6 +157,10 @@ angular.module('mm.core')
         urlTemplate: '{part}/{lang}.json'
     });
 
+    // Add MessageFormat interpolation service as an optional interpolation. We don't want it always active
+    // because it overrides angular's interpolation.
+    $translateProvider.addInterpolation('$translateMessageFormatInterpolation');
+
     // Load the built language files from build/lang.
     $translatePartialLoaderProvider.addPart('build/lang');
 
