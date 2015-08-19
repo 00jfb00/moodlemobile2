@@ -58,7 +58,7 @@ describe('$mmConfig', function() {
 
         httpBackend.flush();
         timeout.flush();
-        setTimeout(timeout.flush, 500); // This one failed sometimes with 100ms.
+        mmFlush(timeout.flush, 500); // This one failed sometimes with 100ms.
     });
 
     it('config from JSON cannot be overridden', function(done) {
@@ -90,7 +90,7 @@ describe('$mmConfig', function() {
 
         httpBackend.flush();
         timeout.flush();
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
     it('config can be retrieved from DB', function(done) {
@@ -106,7 +106,7 @@ describe('$mmConfig', function() {
 
         httpBackend.flush();
         timeout.flush();
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
     it('config from JSON cannot be deleted', function(done) {
@@ -128,7 +128,7 @@ describe('$mmConfig', function() {
         console.log(' ***** START $mmConfig delete - from DB ***** ');
         mmConfig.delete(randid).then(function() {
             // Check it was deleted.
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
             return mmConfig.get(randid).then(function() {
                 // Still in DB.
                 expect(false).toEqual(true);
@@ -144,7 +144,7 @@ describe('$mmConfig', function() {
 
         httpBackend.flush();
         timeout.flush();
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
 });

@@ -91,14 +91,14 @@ describe('$mmGroups', function() {
                 console.log('ERROR');
             });
 
-            setTimeout($timeout.flush, 500);
+            mmFlush($timeout.flush, 500);
             return promise;
 
         }).catch(function() {
             console.log('****** Error creating sites to test $mmGroups ******');
         });
 
-        setTimeout($timeout.flush, 500);
+        mmFlush($timeout.flush, 500);
     });
 
     describe('getUserGroups', function() {
@@ -115,7 +115,7 @@ describe('$mmGroups', function() {
                 done();
             });
 
-            setTimeout(function() {
+            mmFlush(function() {
                 $httpBackend.flush();
                 $timeout.flush();
             }, 100);
@@ -133,8 +133,8 @@ describe('$mmGroups', function() {
                 done();
             });
 
-            setTimeout($timeout.flush, 50);
-            setTimeout($httpBackend.flush, 100);
+            mmFlush($timeout.flush, 50);
+            mmFlush($httpBackend.flush, 100);
         });
 
         it('can return groups from a subset of courses', function(done) {
@@ -149,7 +149,7 @@ describe('$mmGroups', function() {
                 done();
             });
 
-            setTimeout(function() {
+            mmFlush(function() {
                 $httpBackend.flush();
                 $timeout.flush();
             }, 100);
@@ -167,7 +167,7 @@ describe('$mmGroups', function() {
                 done();
             });
 
-            setTimeout(function() {
+            mmFlush(function() {
                 $httpBackend.flush();
                 $timeout.flush();
             }, 100);

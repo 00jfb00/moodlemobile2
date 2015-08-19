@@ -66,7 +66,7 @@ describe('$mmDB', function() {
         // Insert an entry.
         db.insert(storeName, {id: randomid, name: randomname}).then(function() {
             // Retrieve the inserted entry.
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
             return db.get(storeName, randomid).then(function(entry) {
                 expect(entry.name).toEqual(randomname);
             });
@@ -79,10 +79,10 @@ describe('$mmDB', function() {
                 console.log(' ***** FINISH $mmDB insert/get - by id ***** ');
                 done();
             });
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
         });
 
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
     it('DB allows removing all entries in a store', function(done) {
@@ -94,10 +94,10 @@ describe('$mmDB', function() {
         // Insert an entry.
         db.insert(storeName, {id: randomid, name: randomname}).then(function() {
             // Remove all entries in DB.
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
             return db.removeAll(storeName).then(function() {
                 // Try to get the stored entry.
-                setTimeout(timeout.flush, 100);
+                mmFlush(timeout.flush, 100);
                 return db.get(storeName, randomid).then(function() {
                     // Entry shouldn't be there, test failed.
                     expect(true).toEqual(false);
@@ -113,7 +113,7 @@ describe('$mmDB', function() {
             done();
         });
 
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
     it('DB allows counting all entries in a store, or count entries with some conditions', function(done) {
@@ -136,12 +136,12 @@ describe('$mmDB', function() {
 
         q.all(promises).then(function() {
             // Count entries.
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
             return db.count(storeName).then(function(count) {
                 expect(count).toEqual(10);
 
                 // Count entries of type "male".
-                setTimeout(timeout.flush, 100);
+                mmFlush(timeout.flush, 100);
                 return db.count(storeName, ['type', '=', 'male']).then(function(count) {
                     expect(count).toEqual(4);
                 });
@@ -155,10 +155,10 @@ describe('$mmDB', function() {
                 console.log(' ***** FINISH $mmDB count ***** ');
                 done();
             });
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
         });
 
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
     it('DB allows querying and ordering', function(done) {
@@ -181,7 +181,7 @@ describe('$mmDB', function() {
 
         q.all(promises).then(function() {
             // Count entries.
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
             // Retrieve "female" entries ordered by id.
             return db.query(storeName, ['type', '=', 'female'], 'id').then(function(entries) {
                 expect(entries.length).toEqual(6);
@@ -190,7 +190,7 @@ describe('$mmDB', function() {
                 }
 
                 // .query method works, let's test .where method.
-                setTimeout(timeout.flush, 100);
+                mmFlush(timeout.flush, 100);
                 return db.where(storeName, 'type', '=', 'female').then(function(entries) {
                     expect(entries.length).toEqual(6);
                 });
@@ -204,10 +204,10 @@ describe('$mmDB', function() {
                 console.log(' ***** FINISH $mmDB query/where ***** ');
                 done();
             });
-            setTimeout(timeout.flush, 100);
+            mmFlush(timeout.flush, 100);
         });
 
-        setTimeout(timeout.flush, 100);
+        mmFlush(timeout.flush, 100);
     });
 
 });

@@ -61,7 +61,7 @@ describe('$mmWS', function() {
                 // OK.
             });
 
-            setTimeout($httpBackend.flush, 100); // We need $httpBackend.flush for $translate.
+            mmFlush($httpBackend.flush, 100); // We need $httpBackend.flush for $translate.
 
             $q.all([p1, p2, p3]).finally(function() {
                 console.log(' ***** FINISH $mmWS call - Mising params ***** ');
@@ -87,7 +87,7 @@ describe('$mmWS', function() {
                 done();
             });
 
-            setTimeout($httpBackend.flush, 100); // We need $httpBackend.flush for $translate.
+            mmFlush($httpBackend.flush, 100); // We need $httpBackend.flush for $translate.
         });
 
         it('should fail if server call fails', function(done) {
@@ -103,7 +103,7 @@ describe('$mmWS', function() {
                 done();
             });
 
-            setTimeout($httpBackend.flush, 100);
+            mmFlush($httpBackend.flush, 100);
         });
 
         it('should return error message if server returns one', function(done) {
@@ -120,7 +120,7 @@ describe('$mmWS', function() {
                 done();
             });
 
-            setTimeout($httpBackend.flush, 100);
+            mmFlush($httpBackend.flush, 100);
         });
 
         it('should return data returned by server in success', function(done) {
@@ -137,7 +137,7 @@ describe('$mmWS', function() {
                 done();
             });
 
-            setTimeout($httpBackend.flush, 100);
+            mmFlush($httpBackend.flush, 100);
         });
 
         it('should send parameters to server', function(done) {
@@ -156,7 +156,7 @@ describe('$mmWS', function() {
                 done();
             });
 
-            setTimeout($httpBackend.flush, 100);
+            mmFlush($httpBackend.flush, 100);
         });
 
     });
