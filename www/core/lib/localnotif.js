@@ -71,6 +71,23 @@ angular.module('mm.core')
     var codeRequestsQueue = {};
 
     /**
+     * Cancel a local notification.
+     *
+     * @module mm.core
+     * @ngdoc method
+     * @name $mmLocalNotifications#cancel
+     * @param {Number} id        Notification id.
+     * @param {String} component Component of the notification.
+     * @param {String} siteid    Site ID.
+     * @return {Promise}         Promise resolved when the notification is cancelled.
+     */
+    self.cancel = function(id, component, siteid) {
+        return self._getUniqueNotificationId(id, component, siteid).then(function(uniqueId) {
+            return $cordovaLocalNotification.cancel(uniqueId);
+        });
+    };
+
+    /**
      * Get a code to create unique notifications. If there's no code assigned, create a new one.
      *
      * @param  {String} store Store to search in local DB.
@@ -138,8 +155,9 @@ angular.module('mm.core')
      * @param {String} component       Component triggering the notification.
      * @param  {String} siteid         Site ID.
      * @return {Promise}               Promise resolved when the notification ID is generated.
+     * @protected
      */
-    function getUniqueNotificationId(notificationid, component, siteid) {
+    self._getUniqueNotificationId = function(notificationid, component, siteid) {
         if (!siteid || !component) {
             return $q.reject();
         }
@@ -150,7 +168,7 @@ angular.module('mm.core')
                 return (sitecode * 100000000 + componentcode * 10000000 + parseInt(notificationid)) % 2147483647;
             });
         });
-    }
+    };
 
     /**
      * Process the next request in queue.
@@ -219,23 +237,6 @@ angular.module('mm.core')
 
         return deferred.promise;
     }
-
-    /**
-     * Cancel a local notification.
-     *
-     * @module mm.core
-     * @ngdoc method
-     * @name $mmLocalNotifications#cancel
-     * @param {Number} id        Notification id.
-     * @param {String} component Component of the notification.
-     * @param {String} siteid    Site ID.
-     * @return {Promise}         Promise resolved when the notification is cancelled.
-     */
-    self.cancel = function(id, component, siteid) {
-        return getUniqueNotificationId(id, component, siteid).then(function(uniqueId) {
-            return $cordovaLocalNotification.cancel(uniqueId);
-        });
-    };
 
     /**
      * Cancel all the scheduled notifications belonging to a certain site.
@@ -329,7 +330,7 @@ angular.module('mm.core')
      * @param {Function} callback Function to call with the data received by the notification.
      */
     self.registerClick = function(component, callback) {
-        $log.debug("Register observer '"+component+"' for notification click.");
+        $log.debug("Register observer for notification click. Component: " + component);
         observers[component] = callback;
     };
 
@@ -360,7 +361,7 @@ angular.module('mm.core')
      * @return {Promise}            Promise resolved when the notification is scheduled.
      */
     self.schedule = function(notification, component, siteid) {
-        return getUniqueNotificationId(notification.id, component, siteid).then(function(uniqueId) {
+        return self._getUniqueNotificationId(notification.id, component, siteid).then(function(uniqueId) {
             notification.id = uniqueId;
             notification.data = notification.data || {};
             notification.data.component = component;

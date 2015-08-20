@@ -13,8 +13,48 @@
 // limitations under the License.
 
 var flushes = [];
+
+/**
+ * Call a function after a certain delay. All waiting processes will be deleted once a test finishes.
+ *
+ * @param {Function} fn    Function to call.
+ * @param {Number}   delay Delay in ms.
+ */
 function mmFlush(fn, delay) {
     flushes.push(setTimeout(fn, delay));
+}
+
+/**
+ * Call a function every certain time. The process can be started and stopped (once stopped, it cannot be started again).
+ *
+ * @param {Function} fn    Function to call.
+ * @param {Number}   delay Delay in ms.
+ * @return {Object}        Object wit start and stop methods.
+ */
+function mmInterval(fn, delay) {
+    var finished = false,
+        started = false;
+
+    function execute() {
+        if (!finished) {
+            mmFlush(function() {
+                fn();
+                execute();
+            }, delay);
+        }
+    }
+
+    return {
+        start: function() {
+            if (!started) {
+                started = true;
+                execute();
+            }
+        },
+        stop: function() {
+            finished = true;
+        }
+    };
 }
 
 (function() {
