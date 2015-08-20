@@ -18,7 +18,9 @@ describe('$mmSite', function() {
         mmSitesFactory,
         httpBackend,
         timeout,
-        fakeStoreName = 'fake_test_store';
+        mmCoreWSPrefix,
+        fakeStoreName = 'fake_test_store',
+        fakeService = 'myfakeservice';
 
     // Let's create a fake module so we can retrieve $mmSitesFactoryProvider.
     beforeEach(function() {
@@ -34,19 +36,19 @@ describe('$mmSite', function() {
 
     beforeEach(module('mm.core', 'fake.test.module'));
 
-    beforeEach(inject(function($mmSite, $mmSitesManager, $mmSitesFactory, $httpBackend, $timeout, mmCoreWSCacheStore) {
+    beforeEach(inject(function($mmSite, $mmSitesManager, $mmSitesFactory, $httpBackend, $timeout, _mmCoreWSPrefix_) {
         mmSite = $mmSite;
         mmSitesManager = $mmSitesManager;
         mmSitesFactory = $mmSitesFactory;
         httpBackend = $httpBackend;
         timeout = $timeout;
-        cacheStoreName = mmCoreWSCacheStore;
+        mmCoreWSPrefix = _mmCoreWSPrefix_;
 
         // Capture loading of templates and json files.
         $httpBackend.whenGET(/.*\/templates.*/).respond(200, '');
         $httpBackend.whenGET(/build.*/).respond(200, '');
         $httpBackend.whenGET(/core\/assets.*/).respond(200, '');
-        $httpBackend.whenGET('config.json').respond(200, {cache_expiration_time: 300000});
+        $httpBackend.whenGET('config.json').respond(200, {cache_expiration_time: 300000, wsextservice: fakeService});
 
         // Some WS calls
         $httpBackend.when('POST', 'http://somesite.example/webservice/rest/server.php?moodlewsrestformat=json', /.*some_read_ws.*/).respond(200, {success: true});
@@ -436,4 +438,265 @@ describe('$mmSite', function() {
         }, 100);
     });
 
+    describe('checkLocalMobilePlugin', function() {
+
+        beforeEach(inject(function() {
+            httpBackend.flush(); // Load config.json.
+        }));
+
+        it('should return code 0 if local_mobile not installed', function(done) {
+            console.log(' ***** START $mmSite checkLocalMobilePlugin - not installed ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {});
+
+            httpBackend.when('POST', siteurl + '/local/mobile/check.php').respond(500, '');
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkLocalMobilePlugin().then(function(data) {
+                expect(data.code).toEqual(0);
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkLocalMobilePlugin - not installed ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+        it('should return warning if local_mobile returns unexpected answer', function(done) {
+            console.log(' ***** START $mmSite checkLocalMobilePlugin - unexpected answer ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {});
+
+            httpBackend.when('POST', siteurl + '/local/mobile/check.php').respond(200, 'lorem ipsum');
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkLocalMobilePlugin().then(function(data) {
+                expect(data.code).toEqual(0);
+                expect(typeof data.warning).toEqual('string');
+                expect(data.warning).not.toEqual('');
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkLocalMobilePlugin - unexpected answer ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+        it('should fail if local_mobile returns error with code different than 3', function(done) {
+            console.log(' ***** START $mmSite checkLocalMobilePlugin - error and code !=3 ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {});
+
+            httpBackend.when('POST', siteurl + '/local/mobile/check.php').respond(200, {error: true, code: 1});
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkLocalMobilePlugin().then(function() {
+                expect(true).toEqual(false);
+            }).catch(function() {
+                // Success.
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkLocalMobilePlugin - error and code !=3 ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+        it('should return code 0 if local_mobile returns error with code 3', function(done) {
+            console.log(' ***** START $mmSite checkLocalMobilePlugin - error and code 3 ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {});
+
+            httpBackend.when('POST', siteurl + '/local/mobile/check.php').respond(200, {error: true, code: 3});
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkLocalMobilePlugin().then(function(data) {
+                expect(data.code).toEqual(0);
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkLocalMobilePlugin - error and code 3 ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+        it('should return right code and service if local_mobile is installed and no error', function(done) {
+            console.log(' ***** START $mmSite checkLocalMobilePlugin - right code ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {}),
+                mockRequest = httpBackend.when('POST', siteurl + '/local/mobile/check.php');
+
+            mockRequest.respond(200, {code: 0}); // First check with code 0.
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkLocalMobilePlugin().then(function(data) {
+                expect(data.code).toEqual(0);
+                expect(data.service).toEqual(fakeService);
+
+                // Now check with code 1.
+                mockRequest.respond(200, {code: 1});
+
+                return mmSite.checkLocalMobilePlugin().then(function(data) {
+                    expect(data.code).toEqual(1);
+                    expect(data.service).toEqual(fakeService);
+                });
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkLocalMobilePlugin - right code ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+    });
+
+    describe('fetchSiteInfo', function() {
+
+        it('should use core_webservice_get_site_info by default', function(done) {
+            console.log(' ***** START $mmSite fetchSiteInfo - core_webservice_get_site_info ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc'),
+                urlRegex = new RegExp(siteurl+'.*'),
+                info = {
+                    somefield: 'somevalue'
+                };
+            mmSitesManager.setCurrentSite(site);
+
+            // Make core_webservice_get_site_info succeed and moodle_webservice_get_siteinfo fail.
+            httpBackend.when('POST', urlRegex, /.*core_webservice_get_site_info.*/).respond(200, info);
+            httpBackend.when('POST', urlRegex, /.*moodle_webservice_get_siteinfo.*/).respond(500, {});
+
+            mmSite.fetchSiteInfo().then(function(data) {
+                expect(data).toEqual(info);
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite fetchSiteInfo - core_webservice_get_site_info ***** ');
+                done();
+            });
+
+            httpBackend.flush();
+        });
+
+        it('should use moodle_webservice_get_siteinfo as fallback', function(done) {
+            console.log(' ***** START $mmSite fetchSiteInfo - moodle_webservice_get_siteinfo ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc'),
+                urlRegex = new RegExp(siteurl+'.*'),
+                info = {
+                    somefield: 'somevalue'
+                };
+            mmSitesManager.setCurrentSite(site);
+
+            // Make core_webservice_get_site_info succeed and moodle_webservice_get_siteinfo fail.
+            httpBackend.when('POST', urlRegex, /.*core_webservice_get_site_info.*/).respond(500, {});
+            httpBackend.when('POST', urlRegex, /.*moodle_webservice_get_siteinfo.*/).respond(200, info);
+
+            mmSite.fetchSiteInfo().then(function(data) {
+                expect(data).toEqual(info);
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite fetchSiteInfo - moodle_webservice_get_siteinfo ***** ');
+                done();
+            });
+
+            httpBackend.flush();
+            mmFlush(httpBackend.flush, 100);
+        });
+
+    });
+
+    describe('checkIfLocalMobileInstalledAndNotUsed', function() {
+
+        it('should be rejected if app already uses local_mobile', function(done) {
+            console.log(' ***** START $mmSite checkIfLocalMobileInstalledAndNotUsed - already used ***** ');
+
+            var info = {
+                    functions: [
+                        {
+                            name: mmCoreWSPrefix+'function'
+                        }
+                    ]
+                },
+                site = mmSitesFactory.makeSite('siteId', 'http://somesite.example', 'abc', info);
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkIfLocalMobileInstalledAndNotUsed().then(function() {
+                expect(true).toEqual(false);
+            }).catch(function() {
+                // Success.
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkIfLocalMobileInstalledAndNotUsed - already used ***** ');
+                done();
+            });
+
+            timeout.flush();
+        });
+
+        it('should be rejected if local_mobile not installed', function(done) {
+            console.log(' ***** START $mmSite checkIfLocalMobileInstalledAndNotUsed - not installed ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {});
+
+            httpBackend.when('POST', siteurl + '/local/mobile/check.php').respond(500, '');
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkIfLocalMobileInstalledAndNotUsed().then(function() {
+                expect(true).toEqual(false);
+            }).catch(function() {
+                // Success.
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkIfLocalMobileInstalledAndNotUsed - not installed ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+        it('should be resolved if local_mobile is installed and the app is not using it', function(done) {
+            console.log(' ***** START $mmSite checkIfLocalMobileInstalledAndNotUsed - not installed ***** ');
+
+            var siteurl = 'http://somesite.example',
+                site = mmSitesFactory.makeSite('siteId', siteurl, 'abc', {});
+
+            httpBackend.when('POST', siteurl + '/local/mobile/check.php').respond(200, {code: 0});
+            mmSitesManager.setCurrentSite(site);
+
+            mmSite.checkIfLocalMobileInstalledAndNotUsed().then(function() {
+                // Success.
+            }).catch(function() {
+                expect(true).toEqual(false);
+            }).finally(function() {
+                console.log(' ***** FINISH $mmSite checkIfLocalMobileInstalledAndNotUsed - not installed ***** ');
+                done();
+            });
+
+            timeout.flush();
+            httpBackend.flush();
+        });
+
+    });
 });

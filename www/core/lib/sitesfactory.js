@@ -334,7 +334,7 @@ angular.module('mm.core')
                 saveToCache: 0
             };
 
-            return site.read('core_webservice_get_site_info', {}, preSets).catch(function(error) {
+            return site.read('core_webservice_get_site_info', {}, preSets).catch(function() {
                 return site.read('moodle_webservice_get_siteinfo', {}, preSets);
             });
         };
@@ -789,8 +789,7 @@ angular.module('mm.core')
          * @return {Promise}       Promise to be resolved with the WS response.
          */
         function getFromCache(site, method, data, preSets) {
-            var result,
-                db = site.db,
+            var db = site.db,
                 id,
                 promise;
 
