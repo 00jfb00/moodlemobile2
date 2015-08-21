@@ -420,7 +420,6 @@ angular.module('mm.core')
      * @return {Promise}       Promise to be resolved when the site DB is deleted.
      */
     self.deleteDB = function(name) {
-<<<<<<< HEAD
         var deferred = $q.defer();
 
         function deleteDB() {
@@ -436,10 +435,6 @@ angular.module('mm.core')
         }
 
         return deferred.promise;
-=======
-        delete dbInstances[name];
-        return $q.when(ydn.db.deleteDatabase(name));
->>>>>>> MOBILE-930 test: Update config/site tests and add mmDB tests
     };
 
     return self;

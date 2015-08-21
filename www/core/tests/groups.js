@@ -101,6 +101,23 @@ describe('$mmGroups', function() {
         mmFlush($timeout.flush, 500);
     });
 
+    afterEach(function(done) {
+        // Convenience function to delete a site.
+        function cleanupAddedSite(siteid) {
+            var interval = mmInterval($timeout.flush, 200); // Delete site has several async calls, use an interval.
+            interval.start();
+            return $mmSitesManager.deleteSite(siteid).finally(function() {
+                interval.stop();
+            });
+        }
+
+        cleanupAddedSite('siteId').then(function() {
+            cleanupAddedSite('anotherSiteId').then(function() {
+                done();
+            });
+        });
+    });
+
     describe('getUserGroups', function() {
 
         it('should return current site and current user groups if not defined', function(done) {

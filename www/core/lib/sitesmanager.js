@@ -97,7 +97,6 @@ angular.module('mm.core')
 
             // Now, replace the siteurl with the protocol.
             siteurl = siteurl.replace(/^http(s)?\:\/\//i, protocol);
-
             return self.siteExists(siteurl).then(function() {
                 // Create a temporary site to check if local_mobile is installed.
                 var temporarySite = $mmSitesFactory.makeSite(undefined, siteurl);
@@ -153,7 +152,7 @@ angular.module('mm.core')
         if (service) {
             promise = $q.when(service);
         } else {
-            promise = determineService(siteurl);
+            promise = self._determineService(siteurl);
         }
 
         return promise.then(function(service) {
@@ -252,10 +251,14 @@ angular.module('mm.core')
     /**
      * Function for determine which service we should use (default or extended plugin).
      *
+     * @module mm.core
+     * @ngdoc method
+     * @name $mmSitesManager#_determineService
      * @param  {String} siteurl The site URL.
      * @return {String}         The service shortname.
+     * @protected
      */
-    function determineService(siteurl) {
+    self._determineService = function(siteurl) {
         // We need to try siteurl in both https or http (due to loginhttps setting).
 
         // First http://
@@ -272,7 +275,7 @@ angular.module('mm.core')
 
         // Return default service.
         return $mmConfig.get('wsservice');
-    }
+    };
 
     /**
      * Check for the minimum required version. We check for WebServices present, not for Moodle version.
@@ -560,7 +563,19 @@ angular.module('mm.core')
         self.setCurrentSite(undefined);
         $mmEvents.trigger(mmCoreEventLogout);
         return $mmApp.getDB().remove(mmCoreCurrentSiteStore, 1);
-    }
+    };
+
+    /**
+     * Get the site ID stored as current site.
+     *
+     * @return {Promise} Promise resolved with site ID if a site is stored as current site, rejected otherwise.
+     * @protected
+     */
+    self._getCurrentSiteIdStored = function() {
+        return $mmApp.getDB().get(mmCoreCurrentSiteStore, 1).then(function(current_site) {
+            return current_site.siteid;
+        });
+    };
 
     /**
      * Restores the session to the previous one so the user doesn't has to login everytime the app is started.
@@ -576,8 +591,7 @@ angular.module('mm.core')
         }
         sessionRestored = true;
 
-        return $mmApp.getDB().get(mmCoreCurrentSiteStore, 1).then(function(current_site) {
-            var siteid = current_site.siteid;
+        return self._getCurrentSiteIdStored().then(function(siteid) {
             $log.debug('Restore session in site '+siteid);
             return self.loadSite(siteid);
         }, function() {
