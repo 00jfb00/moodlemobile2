@@ -776,10 +776,9 @@ angular.module('mm.core')
         return self._fixPluginfileURL(siteId, fileUrl).then(function(fileUrl) {
             timemodified = timemodified || 0;
             revision = self.getRevisionFromUrl(fileUrl);
-            var fileId = self._getFileIdByUrl(fileUrl);
+            fileId = self._getFileIdByUrl(fileUrl);
             return self._hasFileInPool(siteId, fileId).then(function(fileObject) {
                 var response,
-                    addToQueue = false,
                     fn;
 
                 if (typeof fileObject === 'undefined') {
@@ -1125,8 +1124,7 @@ angular.module('mm.core')
      * Invalidates a file by marking it stale. See {@link $mmFilepool#invalidateFileByUrl} for more details.
      */
     self.invalidateFilesByComponent = function(siteId, component, componentId) {
-        var values = { stale: true },
-            where;
+        var where;
         if (typeof componentId !== 'undefined') {
             where = ['componentAndId', '=', [component, self._fixComponentId(componentId)]];
         } else {
@@ -1227,7 +1225,6 @@ angular.module('mm.core')
      */
     self._processQueue = function() {
         var deferred = $q.defer(),
-            now = new Date(),
             promise;
 
         if (queueState !== QUEUE_RUNNING) {
