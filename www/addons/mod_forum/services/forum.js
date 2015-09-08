@@ -14,6 +14,23 @@
 
 angular.module('mm.addons.mod_forum')
 
+.constant('mmaModForumSyncStore', 'forums_to_sync')
+
+.config(function($mmSitesFactoryProvider, mmaModForumSyncStore) {
+    var stores = [
+        {
+            name: mmaModForumSyncStore,
+            keyPath: 'id',
+            indexes: [
+                {
+                    name: 'synchronize'
+                }
+            ]
+        }
+    ];
+    $mmSitesFactoryProvider.registerStores(stores);
+})
+
 /**
  * Forum service.
  *
@@ -21,7 +38,10 @@ angular.module('mm.addons.mod_forum')
  * @ngdoc controller
  * @name $mmaModForum
  */
-.factory('$mmaModForum', function($q, $mmSite, $mmUtil, $mmUser, mmaModForumDiscPerPage) {
+.factory('$mmaModForum', function($log, $q, $mmSitesManager, $mmSite, $mmApp, $mmUser, mmaModForumDiscPerPage,
+            mmaModForumSyncStore) {
+    $log = $log.getInstance('$mmaModForum');
+
     var self = {};
 
     /**
@@ -132,23 +152,28 @@ angular.module('mm.addons.mod_forum')
      * @ngdoc method
      * @name $mmaModForum#getDiscussionPosts
      * @param {Number} discussionid Discussion ID.
+     * @param {String} [siteid]     Site ID. If not defined, use current site.
      * @return {Promise}            Promise resolved with forum discussions.
      */
-    self.getDiscussionPosts = function(discussionid) {
-        var params = {
-                discussionid: discussionid
-            },
-            preSets = {
-                cacheKey: getDiscussionPostsCacheKey(discussionid)
-            };
+    self.getDiscussionPosts = function(discussionid, siteid) {
+        siteid = siteid || $mmSite.getId();
 
-        return $mmSite.read('mod_forum_get_forum_discussion_posts', params, preSets).then(function(response) {
-            if (response) {
-                storeUserData(response.posts);
-                return response.posts;
-            } else {
-                return $q.reject();
-            }
+        return $mmSitesManager.getSite(siteid).then(function(site) {
+            var params = {
+                    discussionid: discussionid
+                },
+                preSets = {
+                    cacheKey: getDiscussionPostsCacheKey(discussionid)
+                };
+
+            return site.read('mod_forum_get_forum_discussion_posts', params, preSets).then(function(response) {
+                if (response) {
+                    storeUserData(response.posts);
+                    return response.posts;
+                } else {
+                    return $q.reject();
+                }
+            });
         });
     };
 
@@ -158,32 +183,52 @@ angular.module('mm.addons.mod_forum')
      * @module mm.addons.mod_forum
      * @ngdoc method
      * @name $mmaModForum#getDiscussions
-     * @param {Number} forumid Forum ID.
-     * @param {Number} page    Page.
-     * @return {Promise}       Promise resolved with forum discussions.
+     * @param {Number} forumid  Forum ID.
+     * @param {Number} [page=0] Page.
+     * @param {String} [siteid] Site ID. If not defined, use current site.
+     * @return {Promise}        Promise resolved with forum discussions.
      */
-    self.getDiscussions = function(forumid, page) {
+    self.getDiscussions = function(forumid, page, siteid) {
         page = page || 0;
+        siteid = siteid || $mmSite.getId();
 
-        var params = {
-                forumid: forumid,
-                sortby:  'timemodified',
-                sortdirection:  'DESC',
-                page: page,
-                perpage: mmaModForumDiscPerPage
-            },
-            preSets = {
-                cacheKey: getDiscussionsListCacheKey(forumid)
-            };
+        return $mmSitesManager.getSite(siteid).then(function(site) {
+            var params = {
+                    forumid: forumid,
+                    sortby:  'timemodified',
+                    sortdirection:  'DESC',
+                    page: page,
+                    perpage: mmaModForumDiscPerPage
+                },
+                preSets = {
+                    cacheKey: getDiscussionsListCacheKey(forumid)
+                };
 
-        return $mmSite.read('mod_forum_get_forum_discussions_paginated', params, preSets).then(function(response) {
-            if (response) {
-                var canLoadMore = response.discussions.length >= mmaModForumDiscPerPage;
-                storeUserData(response.discussions);
-                return {discussions: response.discussions, canLoadMore: canLoadMore};
-            } else {
-                return $q.reject();
-            }
+            return site.read('mod_forum_get_forum_discussions_paginated', params, preSets).then(function(response) {
+                if (response) {
+                    var canLoadMore = response.discussions.length >= mmaModForumDiscPerPage;
+                    storeUserData(response.discussions);
+                    return {discussions: response.discussions, canLoadMore: canLoadMore};
+                } else {
+                    return $q.reject();
+                }
+            });
+        });
+    };
+
+    /**
+     * Get the IDs of the forums to synchronize.
+     *
+     * @param  {String} siteid Site ID.
+     * @return {Promise}       Promise resolved with the array of forum IDs to synchronize in this site.
+     */
+    self.getForumsToSync = function(siteid) {
+        return $mmSitesManager.getSiteDb(siteid).then(function(db) {
+            return db.whereEqual(mmaModForumSyncStore, 'synchronize', "1").then(function(entries) {
+                return entries.map(function(e) {
+                    return e.id;
+                });
+            });
         });
     };
 
@@ -217,6 +262,23 @@ angular.module('mm.addons.mod_forum')
     };
 
     /**
+     * Check if a forum synchronization is active.
+     *
+     * @module mm.addons.mod_forum
+     * @ngdoc method
+     * @name $mmaModForum#isForumSync
+     * @param {Number} id Forum ID.
+     * @return {Promise}  Promise always resolved with a boolean: true if synchronization is active, false otherwise.
+     */
+    self.isForumSync = function(id) {
+        return $mmSite.getDb().get(mmaModForumSyncStore, id).then(function(entry) {
+            return entry.synchronize === "1";
+        }).catch(function() {
+            return false;
+        });
+    };
+
+    /**
      * Report a forum as being viewed.
      *
      * @module mm.addons.mod_forum
@@ -233,6 +295,24 @@ angular.module('mm.addons.mod_forum')
             return $mmSite.write('mod_forum_view_forum', params);
         }
         return $q.reject();
+    };
+
+    /**
+     * Set forum synchronization (active or not).
+     *
+     * @module mm.addons.mod_forum
+     * @ngdoc method
+     * @name $mmaModForum#setForumSync
+     * @param {Number}  id     Forum ID.
+     * @param {Boolean} active True if sync should be active, false otherwise.
+     * @return {Promise}       Promise resolved in success, false otherwise.
+     */
+    self.setForumSync = function(id, active) {
+        var entry = {
+            id: id,
+            synchronize: active ? "1" : "0"
+        };
+        return $mmSite.getDb().insert(mmaModForumSyncStore, entry);
     };
 
     /**
@@ -257,6 +337,80 @@ angular.module('mm.addons.mod_forum')
             }
         });
     }
+
+    /**
+     * Sync forums in a site.
+     *
+     * @module mm.addons.mod_forum
+     * @ngdoc method
+     * @name $mmaModForum#_syncSiteForums
+     * @param  {String} siteid Site ID.
+     * @return {Promise}       Promise resolved when the forums are synchronized.
+     */
+    self._syncSiteForums = function(siteid) {
+        return self.getForumsToSync(siteid).then(function(forumids) {
+            var promises = [];
+            angular.forEach(forumids, function(forumid) {
+                promises.push(self._syncForum(siteid, forumid));
+            });
+            return $q.all(promises);
+        });
+    };
+
+    /**
+     * Synchronize a forum.
+     *
+     * @module mm.addons.mod_forum
+     * @ngdoc method
+     * @name $mmaModForum#_syncForum
+     * @param  {String} siteid   Site ID.
+     * @param  {Number} forumid  Forum ID.
+     * @param  {Number} [page=0] Page to get discussions.
+     * @return {Promise}         Promise resolved on success, rejected on failure.
+     * @protected
+     */
+    self._syncForum = function(siteid, forumid, page) {
+        page = page || 0;
+        $log.debug('Sync page ' + page + ' of forum ' + forumid + ' in site ' + siteid);
+        return self.getDiscussions(forumid, page, siteid).then(function(data) {
+            // Sync posts from all the discussions retrieved.
+            var promises = [];
+            angular.forEach(data.discussions, function(discussion) {
+                promises.push(self.getDiscussionPosts(discussion.discussion, siteid));
+            });
+            return $q.all(promises).then(function() {
+                // Sync next page if there are more discussions.
+                if (data.canLoadMore) {
+                    return self._syncForum(siteid, forumid, page + 1);
+                }
+            });
+        });
+    };
+
+    /**
+     * Synchronize all the forums of all the sites.
+     *
+     * @module mm.addons.mod_forum
+     * @ngdoc method
+     * @name $mmaModForum#_syncForums
+     * @return {Promise} Promise resolved on success, rejected on failure.
+     * @protected
+     */
+    self._syncForums = function() {
+        if ($mmApp.isOnline()) {
+            return $mmSitesManager.getSitesIds().then(function(siteids) {
+                var promises = [];
+                angular.forEach(siteids, function(siteid) {
+                    promises.push(self._syncSiteForums(siteid));
+                });
+                return $q.all(promises).catch(function() {
+                    // Resolve promise even if some sync fails, we don't want to sync forums too often.
+                    $log.debug('Error syncing forums');
+                });
+            });
+        }
+        return $q.reject(); // Haven't synced, reject so it's retried soon.
+    };
 
     return self;
 });

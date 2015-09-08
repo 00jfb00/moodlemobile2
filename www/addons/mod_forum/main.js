@@ -16,6 +16,7 @@ angular.module('mm.addons.mod_forum', [])
 
 .constant('mmaModForumDiscPerPage', 10) // Max of discussions per page.
 .constant('mmaModForumComponent', 'mmaModForum')
+.constant('mmaModForumSyncInterval', 7200000)
 
 .config(function($stateProvider) {
 
@@ -55,7 +56,7 @@ angular.module('mm.addons.mod_forum', [])
     $mmCourseDelegateProvider.registerContentHandler('mmaModForum', 'forum', '$mmaModForumCourseContentHandler');
 })
 
-.run(function($mmaModForum, $mmModuleActionsDelegate) {
+.run(function($mmaModForum, $mmModuleActionsDelegate, $mmCronDelegate, mmaModForumSyncInterval) {
 
     // Add actions to notifications. Forum will only add 1 action: view discussion.
     $mmModuleActionsDelegate.registerModuleHandler('mmaModForum', function(url, courseid) {
@@ -77,4 +78,6 @@ angular.module('mm.addons.mod_forum', [])
         }
 
     });
+
+    $mmCronDelegate.register('mmaModForum', mmaModForumSyncInterval, true, $mmaModForum._syncForums);
 });

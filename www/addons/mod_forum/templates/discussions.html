@@ -9,6 +9,17 @@
             </ion-refresher>
             <mm-loading hide-until="discussionsLoaded">
                 <mm-course-mod-description watch="true" description="description" note="'mma.mod_forum.numdiscussions' | translate:{numdiscussions: forum.numdiscussions}" ></mm-course-mod-description>
+                <div class="card list" ng-if="forum">
+                    <div class="item item-toggle item-text-wrap">
+                        <p id="mma-forum-keepsynclabel">{{ 'mma.mod_forum.keepsynchronising' | translate }}</p>
+                        <label class="toggle" aria-labelledby="mma-forum-keepsynclabel">
+                            <input id="mma-forum-keepsynccheckbox" type="checkbox" ng-model="forum.synchronize" ng-change="syncChanged(forum.id, forum.synchronize)">
+                            <div class="track">
+                                <div class="handle"></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
                 <ul class="list">
                     <li class="card" ng-repeat="discussion in discussions track by $index">
                         <a class="mma-forum-discussion-link" mm-split-view-link="site.mod_forum-discussion({courseid: courseid, discussionid: discussion.discussion})">

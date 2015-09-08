@@ -39,12 +39,18 @@ angular.module('mm.addons.mod_forum')
         return $mmaModForum.getForum(courseid, module.id).then(function(forumdata) {
             if (forumdata) {
                 forum = forumdata;
+                return $mmaModForum.isForumSync(forum.id).catch(function() {
+                    // Shouldn't happen. Return false.
+                    return false;
+                }).then(function(sync) {
+                    forum.synchronize = sync;
 
-                $scope.title = forum.name || $scope.title;
-                $scope.description = forum.intro || $scope.description;
-                $scope.forum = forum;
+                    $scope.title = forum.name || $scope.title;
+                    $scope.description = forum.intro || $scope.description;
+                    $scope.forum = forum;
 
-                return fetchDiscussions(refresh);
+                    return fetchDiscussions(refresh);
+                });
             } else {
                 $mmUtil.showErrorModal('mma.mod_forum.errorgetforum', true);
                 return $q.reject();
@@ -113,5 +119,10 @@ angular.module('mm.addons.mod_forum')
                 $scope.$broadcast('scroll.refreshComplete');
             });
         });
+    };
+
+    // Sync toggle changed.
+    $scope.syncChanged = function(id, synchronize) {
+        $mmaModForum.setForumSync(id, synchronize);
     };
 });

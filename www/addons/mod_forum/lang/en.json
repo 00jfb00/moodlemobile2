@@ -1,6 +1,7 @@
 {
     "errorgetforum": "Error getting forum data.",
     "forumnodiscussionsyet": "There are no discussion topics yet in this forum.",
+    "keepsynchronising": "Keep synchronising posts from the server",
     "numdiscussions": "{{numdiscussions}} discussions",
     "numreplies": "{{numreplies}} replies"
 }
