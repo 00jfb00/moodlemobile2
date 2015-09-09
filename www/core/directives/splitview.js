@@ -94,11 +94,15 @@ angular.module('mm.core')
         /**
          * Load a mm-split-view-link.
          *
-         * @param {Boolean} retrying True if we're retrying because the function failed (link wasn't ready), false otherwise.
+         * @param {String}  [selector] Selector of the link to load. If not defined, load first link.
+         * @param {Boolean} retrying   True if we're retrying because the function failed (link wasn't ready), false otherwise.
          */
-        this.loadLink = function(retrying) {
+        this.loadLink = function(selector, retrying) {
             if ($ionicPlatform.isTablet()) {
-                if (!linkToLoad) {
+                if (selector) {
+                    // Get the specified element.
+                    linkToLoad = angular.element(element.querySelector(selector));
+                } else if (!linkToLoad) {
                     // No link set. Get first link inside the directive.
                     linkToLoad = angular.element(element.querySelector('[mm-split-view-link]'));
                 }
@@ -108,7 +112,7 @@ angular.module('mm.core')
                     if (!retrying) {
                         linkToLoad = undefined;
                         $timeout(function() {
-                            self.loadLink(true);
+                            self.loadLink(selector, true);
                         });
                     }
                 }
@@ -164,6 +168,14 @@ angular.module('mm.core')
                 menuWidth = attrs.menuWidth,
                 component = attrs.component || 'tablet';
 
+            function loadLink() {
+                if (attrs.linkToLoad) {
+                    controller.loadLink(scope.$eval(attrs.linkToLoad));
+                } else {
+                    controller.loadLink();
+                }
+            }
+
             scope.component = component;
 
             controller.setComponent(component);
@@ -184,11 +196,11 @@ angular.module('mm.core')
                 // Load link when variable is set to true.
                 scope.$watch(attrs.loadWhen, function(newValue) {
                     if (newValue) {
-                        controller.loadLink();
+                        loadLink();
                     }
                 });
             } else {
-                controller.loadLink();
+                loadLink();
             }
 
             // Load last opened link when we re-enter the same state. We use $stateChangeSuccess instead of $ionicView.enter

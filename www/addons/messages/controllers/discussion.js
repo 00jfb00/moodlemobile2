@@ -45,10 +45,11 @@ angular.module('mm.addons.messages')
         $scope.title = userFullname;
     }
 
-    // Disable the profile button if we're coming from a profile. It is safer to prevent forbid the access
-    // to the full profile (we do not know the course ID they came from) as some users cannot view the full
-    // profile of other users.
-    if (backView && backView.stateName === mmUserProfileState) {
+    // Disable the profile button if we're coming from a profile. If the profile is loaded in a split view contents
+    // we can't detect the state, so we need to check for the "parent" state (split view menu).
+    var profileParentStates = ['site.messages', 'site.participants', 'site.mod_forum'];
+    if (backView && (backView.stateName === mmUserProfileState ||
+            ($ionicPlatform.isTablet() && profileParentStates.indexOf(backView.stateName) != -1))) {
         $scope.profileLink = false;
     }
 

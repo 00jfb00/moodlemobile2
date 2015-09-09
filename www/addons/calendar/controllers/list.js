@@ -22,7 +22,7 @@ angular.module('mm.addons.calendar')
  * @name mmaCalendarListCtrl
  */
 .controller('mmaCalendarListCtrl', function($scope, $stateParams, $log, $state, $mmaCalendar, $mmUtil, $ionicHistory,
-        mmaCalendarDaysInterval) {
+        $ionicPlatform, mmaCalendarDaysInterval) {
 
     $log = $log.getInstance('mmaCalendarListCtrl');
 
@@ -32,7 +32,13 @@ angular.module('mm.addons.calendar')
     if ($stateParams.eventid) {
         // We arrived here via notification click, let's clear history and redirect to event details.
         $ionicHistory.clearHistory();
-        $state.go('site.calendar-event', {id: $stateParams.eventid});
+        if ($ionicPlatform.isTablet()) {
+            // Load the event in the split-view.
+            $scope.linkToLoad = '[data-eventid="' + $stateParams.eventid + '"]';
+        } else {
+            // Go to a new state.
+            $state.go('site.calendar-event', {id: $stateParams.eventid});
+        }
     }
 
     // Convenience function to initialize variables.

@@ -220,11 +220,18 @@ angular.module('mm.addons.messages')
              * @ngdoc controller
              * @name $mmaMessagesHandlers#sendMessage:controller
              */
-            return function($scope) {
+            return function($scope, $ionicHistory, $ionicPlatform) {
                 $scope.title = 'mma.messages.sendmessage';
                 $scope.action = function($event) {
                     $event.preventDefault();
                     $event.stopPropagation();
+                    if ($ionicPlatform.isTablet()) {
+                        var backView = $ionicHistory.backView();
+                        if (backView && backView.stateName == 'site.messages') {
+                            $ionicHistory.goBack();
+                            return;
+                        }
+                    }
                     $state.go('site.messages-discussion', {
                         userId: user.id,
                         userFullname: user.fullname
