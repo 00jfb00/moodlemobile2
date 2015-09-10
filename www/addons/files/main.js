@@ -19,6 +19,7 @@ angular.module('mm.addons.files', ['mm.core'])
 .constant('mmaFilesMyComponent', 'mmaFilesMy')
 .constant('mmaFilesSiteComponent', 'mmaFilesSite')
 .constant('mmaFilesPriority', 200)
+.constant('mmaFilesTmpFolder', 'tmp')
 
 .config(function($stateProvider, $mmSideMenuDelegateProvider, mmaFilesUploadStateName, mmaFilesPriority) {
 
@@ -80,29 +81,84 @@ angular.module('mm.addons.files', ['mm.core'])
 
 })
 
-.run(function($mmaFiles, $state, $mmSitesManager, $mmUtil, $mmaFilesHelper, $ionicPlatform, $mmApp) {
+.run(function($mmaFiles, $state, $mmSitesManager, $mmUtil, $mmaFilesHelper, $ionicPlatform, $mmApp, $mmFS) {
 
-    // Search for new files shared with the upload (to upload).
-    if (ionic.Platform.isIOS()) {
-        // In iOS we need to manually check if there are new files in the app Inbox folder.
-        function searchToUpload() {
-            $mmApp.ready().then(function() {
-                $mmaFiles.checkIOSNewFiles().then(function(fileEntry) {
-                    $mmSitesManager.getSites().then(function(sites) {
-                        if (sites.length == 0) {
-                            $mmUtil.showErrorModal('mma.files.errorreceivefilenosites', true);
-                        } else if (sites.length == 1) {
-                            $mmaFilesHelper.showConfirmAndUploadInSite(fileEntry, sites[0].id);
-                        } else {
-                            $state.go('site.files-choose-site', {file: fileEntry});
-                        }
-                    });
-                });
+    function uploadFile(fileEntry) {
+        $mmApp.ready().then(function() {
+            $mmSitesManager.getSites().then(function(sites) {
+                if (sites.length == 0) {
+                    $mmUtil.showErrorModal('mma.files.errorreceivefilenosites', true);
+                } else if (sites.length == 1) {
+                    $mmaFilesHelper.showConfirmAndUploadInSite(fileEntry, sites[0].id);
+                } else {
+                    $state.go('site.files-choose-site', {file: fileEntry});
+                }
             });
-        }
-        // We want to check it at app start and when the app is resumed.
-        $ionicPlatform.on('resume', searchToUpload);
-        searchToUpload();
+        });
     }
 
+    $ionicPlatform.ready(function() {
+        // Search for new files shared with the upload (to upload).
+        if (ionic.Platform.isIOS()) {
+            // In iOS we need to manually check if there are new files in the app Inbox folder.
+            function searchToUpload() {
+                $mmaFiles.checkIOSNewFiles().then(function(fileEntry) {
+                    uploadFile(fileEntry);
+                });
+            }
+            // We want to check it at app start and when the app is resumed.
+            $ionicPlatform.on('resume', searchToUpload);
+            searchToUpload();
+        } else if (ionic.Platform.isAndroid()) {
+            // In Android we use WebIntent plugin to receive the files.
+            // getUri is for files opened directly with Moodle Mobile. Receives file URL.
+            window.plugins.webintent.getUri(function(url) {
+                console.log('URL '+url);
+                if (typeof url == 'string' && url !== '' && $mmFS.isAvailable()) {
+                    $mmFS.getExternalFile(url).then(function(fileEntry) {
+                        console.log('EXT FILE RETRIEVED');
+                        console.log(fileEntry);
+                        uploadFile(fileEntry);
+                    });
+                }
+            });
+
+            // getExtra STREAM is for files shared with the app. Receives file URL.
+            window.plugins.webintent.hasExtra(window.plugins.webintent.EXTRA_STREAM, function(hasExtra) {
+                if (hasExtra) {
+                    window.plugins.webintent.getExtra(window.plugins.webintent.EXTRA_STREAM, function(url) {
+                        console.log('EXTRA STREAM URL: '+url);
+                        if (typeof url == 'string' && url !== '' && $mmFS.isAvailable()) {
+                            $mmFS.getExternalFile(url).then(function(fileEntry) {
+                                uploadFile(fileEntry);
+                            });
+                        }
+                    }, function() {
+                        // There was no extra supplied.
+                    });
+                }
+            }, function() {
+                // Shouldn't happen.
+            });
+
+            // getExtra TEXT is for text shared with the app (like sharing a text note). Receives text shared.
+            window.plugins.webintent.hasExtra(window.plugins.webintent.EXTRA_TEXT, function(hasExtra) {
+                if (hasExtra) {
+                    console.log('HAS EXTRA TEXT');
+                    window.plugins.webintent.getExtra(window.plugins.webintent.EXTRA_TEXT, function(text) {
+                        console.log('TEXT: '+text);
+                        if (typeof text == 'string' && text !== '' && $mmFS.isAvailable()) {
+                            $mmaFilesHelper.askFilenameAndCreate(text).then(function(fileEntry) {
+                                uploadFile(fileEntry);
+                            });
+                        }
+                    }, function() {
+                        // There was no extra supplied.
+                    });
+                }
+            }, function() {
+                // Shouldn't happen.
+            });
+        }
+    });
 });

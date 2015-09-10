@@ -1,0 +1,20 @@
+<ion-modal-view>
+    <ion-header-bar>
+        <h1 class="title">{{ 'mma.files.uploadafile' | translate }}</h1>
+        <button class="button button-icon ion-close-round" ng-click="closeModal()" aria-label="{{ 'mm.core.close' | translate }}"></button>
+    </ion-header-bar>
+    <ion-content padding="true">
+        <div class="list">
+            <div class="item item-text-wrap">
+                <p class="item item-heading">{{ 'mma.files.enterfilename' | translate }}</p>
+                <p>{{filename}}.txt</p>
+            </div>
+            <label class="item item-input">
+                <input type="text" placeholder="{{ 'mma.files.filename' | translate }}" ng-model="filename" >
+            </label>
+            <div class="item">
+                <button class="button button-block" ng-click="submit(filename)" ng-disabled="!filename">{{ 'mm.core.ok' | translate }}</button>
+            </div>
+        </div>
+    </ion-content>
+</ion-modal-view>

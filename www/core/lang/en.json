@@ -63,6 +63,7 @@
     "nummonths": "{{$a}} months",
     "numseconds": "{{$a}} seconds",
     "numyears": "{{$a}} years",
+    "ok": "OK",
     "openinbrowser": "Open in browser",
     "percentagenumber": "{{$a}}%",
     "previous": "Previous",

@@ -62,6 +62,10 @@ angular.module('mm.addons.files')
      */
     self.checkIOSNewFiles = function() {
 
+        if (!$mmFS.isAvailable()) {
+            return $q.reject();
+        }
+
         var deferred = $q.defer();
 
         $log.debug('Search for new files on iOS');

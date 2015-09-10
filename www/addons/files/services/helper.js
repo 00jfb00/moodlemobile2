@@ -16,12 +16,50 @@ angular.module('mm.addons.files')
 
 .constant('mmaFilesFileSizeWarning', 5242880)
 
-.factory('$mmaFilesHelper', function($q, $mmUtil, $mmApp, $log, $translate, $window,
+.factory('$mmaFilesHelper', function($q, $mmUtil, $mmApp, $log, $translate, $window, $ionicModal, $rootScope, mmaFilesTmpFolder,
         $mmaFiles, $cordovaCamera, $cordovaCapture, $mmLang, $mmFS, $mmText, mmaFilesFileSizeWarning) {
 
     $log = $log.getInstance('$mmaFilesHelper');
 
     var self = {};
+
+    /**
+     * Asks the user a filename and creates a file with this filename and the text param as contents.
+     *
+     * @param  {String} text File contents.
+     * @return {Promise}     Promise resolved with the FileEntry of the created file.
+     */
+    self.askFilenameAndCreate = function(text) {
+        var deferred = $q.defer(),
+            scope = $rootScope.$new(true);
+
+        scope.filename = '';
+        scope.submit = function(filename) {
+            if (!filename) {
+                return;
+            }
+
+            var path = $mmFS.concatenatePaths(mmaFilesTmpFolder, filename+'.txt');
+            $mmFS.writeFile(path, text).then(deferred.resolve, deferred.reject).finally(function() {
+                scope.modal.hide();
+                scope.$destroy();
+            });
+        };
+
+        $ionicModal.fromTemplateUrl('addons/files/templates/inputfilename.html', {
+            scope: scope,
+            animation: 'slide-in-up'
+        }).then(function(m) {
+            scope.modal = m;
+            scope.modal.show();
+        });
+
+        scope.$on('$destroy', function() {
+            scope.modal.remove();
+        });
+
+        return deferred.promise;
+    };
 
     /**
      * Convenient helper for the user to upload an image from an album.
@@ -287,7 +325,7 @@ angular.module('mm.addons.files')
             $mmUtil.showErrorModal('mma.files.errorreadingfile', true);
             return $q.reject();
         });
-    }
+    };
 
     /**
      * Treat a capture image or browse album error.
