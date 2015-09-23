@@ -39,6 +39,36 @@ angular.module('mm.core')
         tagsToIgnore = ['AUDIO', 'VIDEO', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'A'];
 
     /**
+     * Add mm-external-content and its extra attributes to a certain element.
+     *
+     * @param {Object} el            DOM element to add the attributes to.
+     * @param {String} [component]   Component.
+     * @param {Number} [componentId] Component ID.
+     * @param {String} [siteId]      Site ID.
+     */
+    function addExternalContent(el, component, componentId, siteId) {
+        el.setAttribute('mm-external-content', '');
+        if (component) {
+            el.setAttribute('component', component);
+            if (componentId) {
+                el.setAttribute('component-id', componentId);
+            }
+        }
+        if (siteId) {
+            el.setAttribute('siteid', siteId);
+        }
+    }
+
+    /**
+     * Add class to adapt media to a certain element.
+     *
+     * @param {Object} el Dom element to add the class to.
+     */
+    function addMediaAdaptClass(el) {
+        angular.element(el).addClass('mm-media-adapt-width');
+    }
+
+    /**
      * Format contents and render.
      *
      * @param  {Object} scope   Directive scope.
@@ -103,8 +133,18 @@ angular.module('mm.core')
         // Apply format text function.
         return $mmText.formatText(text, attrs.clean, attrs.singleline, shorten).then(function(formatted) {
 
-            function addMediaAdaptClass(el) {
-                angular.element(el).addClass('mm-media-adapt-width');
+            /**
+             * Add media adapt class and mm-external-content to the media element and their child sources.
+             *
+             * @param  {Object} el DOM element.
+             */
+            function treatMedia(el) {
+                addMediaAdaptClass(el);
+
+                addExternalContent(el, component, componentId, siteId);
+                angular.forEach(angular.element(el).find('source'), function(source) {
+                    addExternalContent(source, component, componentId, siteId);
+                });
             }
 
             // Convert the content into DOM.
@@ -113,35 +153,17 @@ angular.module('mm.core')
             // Walk through the content to find images, and add our directive.
             angular.forEach(dom.find('img'), function(img) {
                 addMediaAdaptClass(img);
-                img.setAttribute('mm-external-content', '');
-                if (component) {
-                    img.setAttribute('component', component);
-                    if (componentId) {
-                        img.setAttribute('component-id', componentId);
-                    }
-                }
-                if (siteId) {
-                    img.setAttribute('siteid', siteId);
-                }
+                addExternalContent(img, component, componentId, siteId);
             });
 
             // Walk through the content to find the links and add our directive to it.
             angular.forEach(dom.find('a'), function(anchor) {
-                anchor.setAttribute('mm-external-content', '');
                 anchor.setAttribute('mm-browser', '');
-                if (component) {
-                    anchor.setAttribute('component', component);
-                    if (componentId) {
-                        anchor.setAttribute('component-id', componentId);
-                    }
-                }
-                if (siteId) {
-                    anchor.setAttribute('siteid', siteId);
-                }
+                addExternalContent(anchor, component, componentId, siteId);
             });
 
-            angular.forEach(dom.find('audio'), addMediaAdaptClass);
-            angular.forEach(dom.find('video'), addMediaAdaptClass);
+            angular.forEach(dom.find('audio'), treatMedia);
+            angular.forEach(dom.find('video'), treatMedia);
             angular.forEach(dom.find('iframe'), addMediaAdaptClass);
 
             return dom.html();

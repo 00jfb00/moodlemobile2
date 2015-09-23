@@ -31,10 +31,21 @@ angular.module('mm.core')
  * Attributes accepted:
  *     - siteid: Reference to the site ID if different than the site the user is connected to.
  */
-.directive('mmExternalContent', function($log, $mmFilepool, $mmSite, $mmSitesManager, $mmUtil) {
+.directive('mmExternalContent', function($log, $mmFilepool, $mmSite, $mmSitesManager, $mmUtil, $q) {
     $log = $log.getInstance('mmExternalContent');
 
-    function handleExternalContent(siteId, dom, targetAttr, url, component, componentId) {
+    /**
+     * Handle external content, setting the right URL.
+     *
+     * @param  {String} siteId        Site ID.
+     * @param  {Object} dom           DOM element.
+     * @param  {String} targetAttr    Attribute to modify.
+     * @param  {String} url           Original URL to treat.
+     * @param  {String} [component]   Component
+     * @param  {Number} [componentId] Component ID.
+     * @param  {Boolean} download     True if URL contents should be downloaded, false if URL should only be fixed.
+     */
+    function handleExternalContent(siteId, dom, targetAttr, url, component, componentId, download) {
 
         if (!url || !$mmUtil.isPluginFileUrl(url)) {
             $log.debug('Ignoring non-pluginfile URL: ' + url);
@@ -45,7 +56,11 @@ angular.module('mm.core')
         $mmSitesManager.getSite(siteId).then(function(site) {
             var fn;
 
-            if (targetAttr === 'src') {
+            if (!download) {
+                fn = function() {
+                    return $q.when(site.fixPluginfileURL(url))
+                };
+            } else if (targetAttr === 'src') {
                 fn = $mmFilepool.getSrcByUrl;
             } else {
                 fn = $mmFilepool.getUrlByUrl;
@@ -65,11 +80,12 @@ angular.module('mm.core')
         },
         link: function(scope, element, attrs) {
             var dom = element[0],
+                siteid = scope.siteid || $mmSite.getId(),
                 component = attrs.component,
                 componentId = attrs.componentId,
                 targetAttr,
                 observe = false,
-                url;
+                download = true;
 
             if (dom.tagName === 'A') {
                 targetAttr = 'href';
@@ -79,6 +95,13 @@ angular.module('mm.core')
 
             } else if (dom.tagName === 'IMG') {
                 targetAttr = 'src';
+                if (attrs.hasOwnProperty('ngSrc')) {
+                    observe = true;
+                }
+
+            } else if (dom.tagName === 'AUDIO' || dom.tagName === 'VIDEO' || dom.tagName === 'SOURCE') {
+                targetAttr = 'src';
+                download = false;
                 if (attrs.hasOwnProperty('ngSrc')) {
                     observe = true;
                 }
@@ -94,10 +117,10 @@ angular.module('mm.core')
                     if (!url) {
                         return;
                     }
-                    handleExternalContent(scope.siteid || $mmSite.getId(), dom, targetAttr, url, component, componentId);
+                    handleExternalContent(siteid, dom, targetAttr, url, component, componentId, download);
                 });
             } else {
-                handleExternalContent(scope.siteid || $mmSite.getId(), dom, targetAttr, attrs[targetAttr], component, componentId);
+                handleExternalContent(siteid, dom, targetAttr, attrs[targetAttr], component, componentId, download);
             }
 
         }
