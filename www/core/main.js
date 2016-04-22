@@ -37,10 +37,20 @@ angular.module('mm.core', ['pascalprecht.translate'])
     // Set tabs to bottom on Android.
     $ionicConfigProvider.platform.android.tabs.position('bottom');
 
+    // Decorate ionic.Platform.
+    ionic.Platform.isFirefox = function() {
+        return navigator.userAgent.indexOf('Firefox') != -1 && typeof InstallTrigger !== 'undefined';
+    };
+
     // Decorate $ionicPlatform.
     $provide.decorator('$ionicPlatform', ['$delegate', '$window', function($delegate, $window) {
         $delegate.isTablet = function() {
-            var mq = 'only screen and (min-width: 768px) and (-webkit-min-device-pixel-ratio: 1)';
+            var mq = 'only screen and (min-width: 768px) and ';
+            if (ionic.Platform.isFirefox()) {
+                mq += '(min--moz-device-pixel-ratio: 1)';
+            } else {
+                mq += '(-webkit-min-device-pixel-ratio: 1)';
+            }
             return $window.matchMedia(mq).matches;
         };
         return $delegate;
