@@ -284,7 +284,6 @@ angular.module('mm.addons.qtype_ddwtos')
             // If home answer area is clicked, return drag home.
             var home = document.querySelector(this.selectors.top_node() + ' .answercontainer');
             home = angular.element(home);
-            home.attr('data-tap-disabled', true);
 
             home.on('click', function() {
                 var drag = instance.selected;
