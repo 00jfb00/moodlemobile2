@@ -44,9 +44,15 @@ angular.module('mm.addons.qtype_ddimageortext')
                 bgimg.on('load', function() {
                     bgimg.off('load');
 
-                    var item_homes = angular.element(instance.doc.drag_item_homes());
-                    item_homes.on('load', function() {
-                        instance.loaded++;
+                    var item_homes = instance.doc.drag_item_homes();
+                    angular.forEach(item_homes, function(item) {
+                        if (item.complete) {
+                            instance.loaded++;
+                        } else {
+                            angular.element(item).on('load', function() {
+                                instance.loaded++;
+                            });
+                        }
                     });
                     instance.poll_for_image_load();
                 });
