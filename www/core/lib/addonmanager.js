@@ -383,7 +383,7 @@ angular.module('mm.core')
     return self;
 })
 
-.run(function($mmAddonManager, $mmEvents, mmCoreEventLogin, mmCoreEventLogout, mmCoreEventRemoteAddonsLoaded, $mmSite, $window) {
+.run(function($mmAddonManager, $mmEvents, mmCoreEventLogin, mmCoreEventLogout, mmCoreEventRemoteAddonsLoaded, $mmSite, $mmApp) {
     // Download and load remote addons on login.
     $mmEvents.on(mmCoreEventLogin, function() {
         var siteId = $mmSite.getId();
@@ -400,7 +400,7 @@ angular.module('mm.core')
     $mmEvents.on(mmCoreEventLogout, function() {
         if ($mmAddonManager.hasRemoteAddonsLoaded()) {
             // Temporary fix. Reload the page to unload all remote addons.
-            $window.location.reload();
+            $mmApp.reloadApp();
         }
     });
 });

@@ -32,7 +32,7 @@ angular.module('mm.core', ['pascalprecht.translate'])
 .constant('mmCoreWifiDownloadThreshold', 104857600) // 100MB.
 .constant('mmCoreDownloadThreshold', 10485760) // 10MB.
 
-.config(function($stateProvider, $provide, $ionicConfigProvider, $httpProvider, $mmUtilProvider,
+.config(function($stateProvider, $provide, $ionicConfigProvider, $httpProvider, $mmUtilProvider, $mmAppProvider,
         $mmLogProvider, $compileProvider, $mmInitDelegateProvider, mmInitDelegateMaxAddonPriority) {
 
     // Set tabs to bottom on Android.
@@ -75,6 +75,17 @@ angular.module('mm.core', ['pascalprecht.translate'])
      * $log.debug('My message') -> "dd/mm/aaaa hh:mm:ss MyFactory: My message"
      */
     $provide.decorator('$log', ['$delegate', $mmLogProvider.logDecorator]);
+
+    // Decorate $rootScope to intercept event listeners.
+    $provide.decorator('$rootScope', ['$delegate', function($delegate) {
+        var originalOn = $delegate.$on;
+        $delegate.$on = function(name, listener) {
+            var unregister = originalOn.apply(this, [name, listener]);
+            $mmAppProvider.addRootScopeUnregister(unregister);
+            return unregister;
+        };
+        return $delegate;
+    }]);
 
     $stateProvider
         .state('redirect', {

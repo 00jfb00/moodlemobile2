@@ -142,7 +142,7 @@ angular.module('mm.core.login', [])
         // Prevent state changes while the app is not ready.
         if (!$mmApp.isReady() && toState.name !== 'mm_login.init') {
             event.preventDefault();
-            $state.transitionTo('mm_login.init');
+            $state.go('mm_login.init');
             $log.warn('Forbidding state change to \'' + toState.name + '\'. App is not ready yet.');
             return;
         }
@@ -158,7 +158,7 @@ angular.module('mm.core.login', [])
                 disableAnimate: true,
                 disableBack: true
             });
-            $state.transitionTo('mm_login.init');
+            $state.go('mm_login.init');
         } else if (toState.name.substr(0, 8) === 'mm_login' && toState.name !== 'mm_login.reconnect' && $mmSite.isLoggedIn()) {
             // We are logged in and requested the login page.
             event.preventDefault();

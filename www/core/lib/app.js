@@ -42,7 +42,18 @@ angular.module('mm.core')
         },
         dboptions = {
             autoSchema: true
-        };
+        },
+        initialKeys = Object.keys(window), // Store initial window keys.
+        rootScopeUnregisters = [];
+
+    /**
+     * Add a function to unregister a root scope listener. This will be called when the app is unloaded.
+     *
+     * @param {Function} unregister Function to unregister a listener. Must be the result of calling $rootScope.$on.
+     */
+    this.addRootScopeUnregister = function(unregister) {
+        rootScopeUnregisters.push(unregister);
+    };
 
     /**
      * Register a store schema.
@@ -322,6 +333,38 @@ angular.module('mm.core')
          */
         self.isSSOAuthenticationOngoing = function() {
             return !!ssoAuthenticationDeferred;
+        };
+
+        /**
+         * Function to reload the app. Reserved for core use.
+         *
+         * @module mm.core
+         * @ngdoc method
+         * @name $mmApp#reloadApp
+         * @return {Void}
+         * @protected
+         */
+        self.reloadApp = function() {
+            // Remove keys added by us to window object.
+            var currentKeys = Object.keys(window),
+                diff = currentKeys.filter(function(x) {
+                    return initialKeys.indexOf(x) < 0;
+                });
+
+            for (var i = 0; i < diff.length; i++) {
+                delete window[diff[i]];
+            }
+
+            rootScopeUnregisters.forEach(function(unregister) {
+                unregister();
+            });
+
+            // Now reload the app. Set empty hash to prevent going to current page (causes state change loop).
+            location.hash = '';
+            var div = angular.element('<div ng-app="mm"><ion-nav-view></ion-nav-view></div>');
+            angular.element(document.querySelector('div[ng-app="mm"]')).remove();
+            angular.element(document.body).prepend(div);
+            angular.bootstrap(div, ['mm']);
         };
 
         /**
