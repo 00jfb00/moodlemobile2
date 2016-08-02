@@ -99,7 +99,8 @@ angular.module('mm.core.login', [])
     $log = $log.getInstance('mmLogin');
 
     var isSSOConfirmShown,
-        waitingForBrowser = false;
+        waitingForBrowser = false,
+        loginIndexRegex = /^http.*mobile\/launch\.php\?(token=[^&]*)/;
 
     // Listen for sessionExpired event to reconnect the user.
     $mmEvents.on(mmCoreEventSessionExpired, sessionExpired);
@@ -109,8 +110,19 @@ angular.module('mm.core.login', [])
 
     // Observe loaded pages in the InAppBrowser to handle SSO URLs.
     $rootScope.$on('$cordovaInAppBrowser:loadstart', function(e, event) {
-        // URLs with a custom scheme are prefixed with "http://", we need to remove this.
-        var url = event.url.replace(/^http:\/\//, '');
+        var url = event.url,
+            matches;
+
+        // iOS 9.3.3 Patch: Check if the URL is login/index.php with the token. @see MOBILE-1725
+        matches = url.match(loginIndexRegex);
+        if (matches && matches[1]) {
+            // Simulate a custom URL scheme URL.
+            url = mmCoreConfigConstants.customurlscheme + '://' + matches[1];
+        } else {
+            // URLs with a custom scheme are prefixed with "http://", we need to remove this.
+            url = url.replace(/^http:\/\//, '');
+        }
+
         if (appLaunchedByURL(url)) {
             // Close the browser if it's a valid SSO URL.
             $mmUtil.closeInAppBrowser();
