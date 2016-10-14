@@ -121,13 +121,15 @@ angular.module('mm.core')
                     services[siteurl] = data.service; // No need to store it in DB.
                     return {siteurl: siteurl, code: data.code, warning: data.warning};
                 });
-            }, function() {
+            }, function(error) {
                 // Site doesn't exist.
 
                 if (siteurl.indexOf("https://") === 0) {
                     // Retry without HTTPS.
                     return self.checkSite(siteurl, "http://");
-                } else{
+                } else if (typeof error == 'string') {
+                    return $q.reject(error);
+                } else {
                     return $mmLang.translateAndReject('mm.login.checksiteversion');
                 }
             });
