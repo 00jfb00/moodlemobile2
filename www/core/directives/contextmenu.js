@@ -14,7 +14,7 @@
 
 angular.module('mm.core')
 
-.controller('mmContextMenu', function($scope, $ionicPopover, $q) {
+.controller('mmContextMenu', function($scope, $ionicPopover, $q, $timeout) {
     var items = $scope.ctxtMenuItems = [];
 
     /**
@@ -95,7 +95,14 @@ angular.module('mm.core')
     });
 
     $scope.$on('$destroy', function() {
-        $scope.contextMenuPopover.remove();
+        if ($scope.contextMenuPopover) {
+            $scope.contextMenuPopover.remove();
+        } else {
+            // Directive destroyed before popover was initialized. Wait a bit and try again.
+            $timeout(function() {
+                $scope.contextMenuPopover && $scope.contextMenuPopover.remove();
+            }, 200);
+        }
     });
 })
 
@@ -126,9 +133,15 @@ angular.module('mm.core')
         transclude: true,
         templateUrl: 'core/templates/contextmenuicon.html',
         controller: 'mmContextMenu',
-        link: function(scope) {
+        link: function(scope, element) {
             scope.contextMenuIcon = scope.icon || 'ion-android-more-vertical';
             scope.contextMenuAria = scope.title || $translate.instant('mm.core.info');
+
+            // The transclude should have been executed already. Remove ng-transclude to prevent errors with mm-nav-buttons.
+            var div = element[0].querySelector('div[ng-transclude]');
+            if (div && div.removeAttribute) {
+                div.removeAttribute('ng-transclude');
+            }
         }
     };
 })
@@ -162,7 +175,7 @@ angular.module('mm.core')
  * @param {Boolean}  [closeWhenDone=false] Close popover when action is done. Only if action is supplied and closeOnClick=false.
  * @param {Number}   [priority]            Used to sort items. The highest priority, the highest position.
  */
-.directive('mmContextMenuItem', function($mmUtil, $timeout, $ionicPlatform) {
+.directive('mmContextMenuItem', function($mmUtil, $timeout, $q, $ionicPlatform) {
 
     /**
      * Get a boolean value from item.
@@ -181,9 +194,12 @@ angular.module('mm.core')
     /**
      * Get the controller of the outer context menu.
      *
-     * @return {Object} Controller. Undefined if not found.
+     * @param  {Number} [tries] Number of times it was retried.
+     * @return {Promise}        Promise resolved with controller. Undefined if not found.
      */
-    function getOuterContextMenuController() {
+    function getOuterContextMenuController(tries) {
+        tries = tries || 0;
+
         // Menu is added to the header bar, search it in there.
         var menus = document.querySelectorAll('ion-header-bar mm-context-menu'),
             outerContextMenu;
@@ -197,8 +213,20 @@ angular.module('mm.core')
         });
 
         if (outerContextMenu) {
-            return angular.element(outerContextMenu).controller('mmContextMenu');
+            var controller = angular.element(outerContextMenu).controller('mmContextMenu');
+            if (controller) {
+                return $q.when(controller);
+            }
         }
+
+        // Not found, retry if it hasn't reaches the max number of retries.
+        if (tries < 3) {
+            return $timeout(function() {
+                return getOuterContextMenuController(tries + 1);
+            }, 400);
+        }
+
+        return $q.when();
     }
 
     return {
@@ -219,13 +247,6 @@ angular.module('mm.core')
             ngShow: '=?'
         },
         link: function(scope, element, attrs, CtxtMenuCtrl) {
-            // Remove ng-transclude from parent. If this directive is inside ng-transclude it means ng-transclude has been
-            // executed already and it can be removed to prevent errors with mm-nav-buttons.
-            var parent = element.parent()[0];
-            if (parent && parent.removeAttribute) {
-                parent.removeAttribute('ng-transclude');
-            }
-
             // Initialize values. Change the name of some of them to prevent being reconverted to string.
             scope.priority = scope.priority || 1;
             scope.closeOnClick = getBooleanValue(scope.closeOnClick, true);
@@ -247,13 +268,15 @@ angular.module('mm.core')
                 // Item should be merged with an outer context-menu in tablet view.
                 // Wait a bit to be sure the active header bar is ready.
                 $timeout(function() {
-                    if (!scope.$$destroyed) {
-                        var ctrl = getOuterContextMenuController();
-                        if (ctrl) {
-                            CtxtMenuCtrl = ctrl;
+                    getOuterContextMenuController().then(function(ctrl) {
+                        if (!scope.$$destroyed) {
+                            console.log('ABCDE NOT destroyed, add it', ctrl);
+                            if (ctrl) {
+                                CtxtMenuCtrl = ctrl;
+                            }
+                            CtxtMenuCtrl.addContextMenuItem(scope);
                         }
-                        CtxtMenuCtrl.addContextMenuItem(scope);
-                    }
+                    });
                 }, 1000);
             } else {
                 CtxtMenuCtrl.addContextMenuItem(scope);
