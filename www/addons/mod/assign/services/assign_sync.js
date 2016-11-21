@@ -41,8 +41,8 @@ angular.module('mm.addons.mod_assign')
      * @return {Promise}         Promise resolved with boolean: true if has data to sync, false otherwise.
      */
     self.hasDataToSync = function(assignId, siteId) {
-        return $mmaModAssignOffline.getAssignSubmissions(assignId, siteId).then(function(submissions) {
-            return !!submissions.length;
+        return $mmaModAssignOffline.getAllAssigns(assignId, siteId).then(function(assigns) {
+            return !!assigns.length;
         }).catch(function() {
             return false;
         });
@@ -77,16 +77,9 @@ angular.module('mm.addons.mod_assign')
             var sitePromises = [];
 
             angular.forEach(siteIds, function(siteId) {
-                sitePromises.push($mmaModAssignOffline.getAllSubmissions(siteId).then(function(submissions) {
-                    var assignIds = [],
-                        promises = [];
-
-                    // Get the IDs of all the assigns that have something to be synced.
-                    angular.forEach(submissions, function(submission) {
-                        if (assignIds.indexOf(submission.assignmentid) == -1) {
-                            assignIds.push(submission.assignmentid);
-                        }
-                    });
+                // Sync submissions.
+                sitePromises.push($mmaModAssignOffline.getAllAssigns(siteId).then(function(assignIds) {
+                    var promises = [];
 
                     // Sync all assigns that haven't been synced for a while.
                     angular.forEach(assignIds, function(assignId) {
@@ -142,6 +135,7 @@ angular.module('mm.addons.mod_assign')
         siteId = siteId || $mmSite.getId();
 
         var syncPromise,
+            syncPromises = [],
             assign,
             courseId,
             result = {
@@ -164,11 +158,22 @@ angular.module('mm.addons.mod_assign')
         $log.debug('Try to sync assign ' + assignId);
 
         // Get offline submissions to be sent.
-        syncPromise = $mmaModAssignOffline.getAssignSubmissions(assignId, siteId).catch(function() {
+        syncPromises.push($mmaModAssignOffline.getAssignSubmissions(assignId, siteId).catch(function() {
             // No offline data found, return empty array.
             return [];
-        }).then(function(submissions) {
-            if (!submissions.length) {
+        }));
+
+        // Get offline submission grades to be sent.
+        syncPromises.push($mmaModAssignOffline.getAssignSubmissionsGrade(assignId, siteId).catch(function() {
+            // No offline data found, return empty array.
+            return [];
+        }));
+
+        syncPromise = $q.all(syncPromises).then(function(syncs) {
+            var submissions = syncs[0],
+                grades = syncs[1];
+
+            if (!submissions.length && !grades.length) {
                 // Nothing to sync.
                 return;
             } else if (!$mmApp.isOnline()) {
@@ -176,7 +181,7 @@ angular.module('mm.addons.mod_assign')
                 return $q.reject();
             }
 
-            courseId = submissions[0].courseid;
+            courseId = submissions.length > 0 ? submissions[0].courseid : grades[0].courseid;
 
             return $mmaModAssign.getAssignmentById(courseId, assignId, siteId).then(function(assignData) {
                 assign = assignData;
@@ -185,6 +190,12 @@ angular.module('mm.addons.mod_assign')
 
                 angular.forEach(submissions, function(submission) {
                     promises.push(syncSubmission(assign, submission, result.warnings, siteId).then(function() {
+                        result.updated = true;
+                    }));
+                });
+
+                angular.forEach(grades, function(grade) {
+                    promises.push(syncSubmissionGrade(assign, grade, result.warnings, siteId).then(function() {
                         result.updated = true;
                     }));
                 });
@@ -227,7 +238,7 @@ angular.module('mm.addons.mod_assign')
         return $mmaModAssign.getSubmissionStatus(assign.id, userId, false, true, true, siteId).then(function(status) {
             var promises = [];
 
-             submission = $mmaModAssign.getSubmissionObjectFromAttempt(assign, status.lastattempt);
+            submission = $mmaModAssign.getSubmissionObjectFromAttempt(assign, status.lastattempt);
 
             if (submission.timemodified != offlineData.onlinetimemodified) {
                 // The submission was modified in Moodle, discard the submission.
@@ -286,6 +297,58 @@ angular.module('mm.addons.mod_assign')
         }).then(function() {
             if (discardError) {
                 // Submission was discarded, add a warning.
+                var message = $translate.instant('mm.core.warningofflinedatadeleted', {
+                    component: $mmCourse.translateModuleName('assign'),
+                    name: assign.name,
+                    error: discardError
+                });
+
+                if (warnings.indexOf(message) == -1) {
+                    warnings.push(message);
+                }
+            }
+        });
+    }
+
+    /**
+     * Synchronize a submission grade.
+     *
+     * @param  {Object} assign      Assignment.
+     * @param  {Object} offlineData Submission grade offline data.
+     * @param  {Object[]} warnings  List of warnings.
+     * @param  {String} [siteId]    Site ID. If not defined, current site.
+     * @return {Promise}            Promise resolved if success, rejected otherwise.
+     */
+    function syncSubmissionGrade(assign, offlineData, warnings, siteId) {
+        var discardError,
+            userId = offlineData.userid;
+
+        return $mmaModAssign.getSubmissionStatus(assign.id, userId, false, true, true, siteId).then(function(status) {
+            var timemodified = status.lastattempt && status.lastattempt.gradeddate;
+
+            if (timemodified > offlineData.timemodified) {
+                // The submission grade was modified in Moodle, discard it.
+                discardError = $translate.instant('mma.mod_assign.warningsubmissiongrademodified');
+                return;
+            }
+
+            return $mmaModAssign.submitGradingFormOnline(assign.id, userId, offlineData.grade, offlineData.attemptnumber,
+                    offlineData.addattempt, offlineData.workflowstate, offlineData.applytoall, offlineData.outcomes,
+                    offlineData.plugindata, siteId).catch(function(error) {
+                if (error && error.wserror) {
+                    // The WebService has thrown an error, this means it cannot be submitted. Discard the offline data.
+                    discardError = error.error;
+                } else {
+                    // Couldn't connect to server, reject.
+                    return $q.reject(error && error.error);
+                }
+            });
+        }).then(function() {
+            // Delete the offline data.
+            return $mmaModAssignOffline.deleteSubmissionGrade(assign.id, userId, siteId);
+        }).then(function() {
+            if (discardError) {
+                // Submission grade was discarded, add a warning.
                 var message = $translate.instant('mm.core.warningofflinedatadeleted', {
                     component: $mmCourse.translateModuleName('assign'),
                     name: assign.name,

@@ -1007,16 +1007,21 @@ angular.module('mm.addons.mod_assign')
             return storeOffline();
         }
 
-        return self.saveSubmissionOnline(assignmentId, pluginData, siteId).then(function() {
-            return true;
-        }).catch(function(error) {
-            if (allowOffline && error && !error.wserror) {
-                // Couldn't connect to server, store in offline.
-                return storeOffline();
-            } else {
-                // The WebService has thrown an error or offline not supported, reject.
-                return $q.reject(error.error);
-            }
+        siteId = siteId || $mmSite.getId();
+
+        // If there's already a submission to be sent to the server, discard it first.
+        return $mmaModAssignOffline.deleteSubmission(assignmentId, userId, siteId).then(function() {
+            return self.saveSubmissionOnline(assignmentId, pluginData, siteId).then(function() {
+                return true;
+            }).catch(function(error) {
+                if (allowOffline && error && !error.wserror) {
+                    // Couldn't connect to server, store in offline.
+                    return storeOffline();
+                } else {
+                    // The WebService has thrown an error or offline not supported, reject.
+                    return $q.reject(error.error);
+                }
+            });
         });
 
         // Store the submission to be synchronized later.
@@ -1083,16 +1088,21 @@ angular.module('mm.addons.mod_assign')
             return storeOffline();
         }
 
-        return self.submitForGradingOnline(assignmentId, acceptStatement, siteId).then(function() {
-            return true;
-        }).catch(function(error) {
-            if (error && !error.wserror) {
-                // Couldn't connect to server, store in offline.
-                return storeOffline();
-            } else {
-                // The WebService has thrown an error or offline not supported, reject.
-                return $q.reject(error.error);
-            }
+        siteId = siteId || $mmSite.getId();
+
+        // If there's already a submission to be sent to the server, discard it first.
+        return $mmaModAssignOffline.deleteSubmission(assignmentId, undefined, siteId).then(function() {
+            return self.submitForGradingOnline(assignmentId, acceptStatement, siteId).then(function() {
+                return true;
+            }).catch(function(error) {
+                if (error && !error.wserror) {
+                    // Couldn't connect to server, store in offline.
+                    return storeOffline();
+                } else {
+                    // The WebService has thrown an error or offline not supported, reject.
+                    return $q.reject(error.error);
+                }
+            });
         });
 
         // Store the submission to be synchronized later.
@@ -1153,11 +1163,65 @@ angular.module('mm.addons.mod_assign')
      * @param  {Boolean} applyToAll     If it's a team submission, if the grade applies to all group members.
      * @param  {Object}  outcomes       Object including all outcomes values. If empty, any of them will be sent.
      * @param  {Object}  pluginData     Feedback plugin data to save.
+     * @param  {Number}  courseId       Course ID the assign belongs to.
+     * @param  {String}  [siteId]       Site ID. If not defined, current site.
+     * @return {Promise}                Promise resolved with true if sent to server, resolved with false if stored offline.
+     */
+    self.submitGradingForm = function(assignmentId, userId, grade, attemptNumber, addAttempt, workflowState, applyToAll, outcomes,
+            pluginData, courseId, siteId) {
+        if (!$mmApp.isOnline()) {
+            // App is offline, store the action.
+            return storeOffline();
+        }
+
+        siteId = siteId || $mmSite.getId();
+
+        // If there's already a grade to be sent to the server, discard it first.
+        return $mmaModAssignOffline.deleteSubmissionGrade(assignmentId, userId, siteId).then(function() {
+            return self.submitGradingFormOnline(assignmentId, userId, grade, attemptNumber, addAttempt, workflowState, applyToAll,
+                    outcomes, pluginData, siteId).then(function() {
+                return true;
+            }).catch(function(error) {
+                if (error && !error.wserror) {
+                    // Couldn't connect to server, store in offline.
+                    return storeOffline();
+                } else {
+                    // The WebService has thrown an error or offline not supported, reject.
+                    return $q.reject(error.error);
+                }
+            });
+        });
+
+        // Store the grading to be synchronized later.
+        function storeOffline() {
+            return $mmaModAssignOffline.submitGradingForm(assignmentId, userId, grade, attemptNumber, addAttempt, workflowState,
+                    applyToAll, outcomes, pluginData, courseId, siteId).then(function() {
+                return false;
+            });
+        }
+    };
+
+    /**
+     * Submit the grading for the current user and assignment. It will use old or new WS depending on availability.
+     * It will fail if offline or cannot connect.
+     *
+     * @module mm.addons.mod_assign
+     * @ngdoc method
+     * @name $mmaModAssign#submitGradingFormOnline
+     * @param  {Number}  assignmentId   Assign ID.
+     * @param  {Number}  userId         User ID.
+     * @param  {Number}  grade          Grade to submit.
+     * @param  {Number}  attemptNumber  Number of the attempt number being graded.
+     * @param  {Number}  addAttempt     Admit the user to attempt again.
+     * @param  {String}  workflowState  Next workflow State.
+     * @param  {Boolean} applyToAll     If it's a team submission, if the grade applies to all group members.
+     * @param  {Object}  outcomes       Object including all outcomes values. If empty, any of them will be sent.
+     * @param  {Object}  pluginData     Feedback plugin data to save.
      * @param  {String}  [siteId]       Site ID. If not defined, current site.
      * @return {Promise}                Promise resolved when submitted, rejected otherwise.
      */
-    self.submitGradingForm = function(assignmentId, userId, grade, attemptNumber, addAttempt, workflowState, applyToAll, outcomes,
-            pluginData, siteId) {
+    self.submitGradingFormOnline = function(assignmentId, userId, grade, attemptNumber, addAttempt, workflowState, applyToAll,
+            outcomes, pluginData, siteId) {
         return $mmSitesManager.getSite(siteId).then(function(site) {
             if (site.wsAvailable('mod_assign_submit_grading_form')) {
                 return submitGradingForm(assignmentId, userId, grade, attemptNumber, addAttempt, workflowState, applyToAll,

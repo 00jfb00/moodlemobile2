@@ -28,7 +28,7 @@ angular.module('mm.addons.mod_assign')
         mmaModAssignSubmissionInvalidatedEvent, $mmGroups, $state, $mmaModAssignHelper, mmaModAssignSubmissionStatusReopened,
         $mmEvents, mmaModAssignSubmittedForGradingEvent, $mmFileUploaderHelper, $mmApp, $mmText, mmaModAssignComponent, $mmUtil,
         $mmaModAssignOffline, mmaModAssignEventManualSynced, $mmCourse, $mmAddonManager, mmaModAssignAttemptReopenMethodManual,
-        $mmLang) {
+        $mmLang, $mmSyncBlock) {
 
     /**
      * Set the submission status name and class.
@@ -212,9 +212,29 @@ angular.module('mm.addons.mod_assign')
                         scope.feedback.plugins = $mmaModAssignHelper.getPluginsEnabled(assign, 'assignfeedback');
                     }
 
-                    if (!scope.canSaveGrades) {
+                    // Check if there's any offline data for this submission.
+                    if (scope.canSaveGrades) {
+                        // Submission grades are not identified using attempt number so it can retrieve the feedback for a previous
+                        // attempt. The app will not treat that as an special case.
+                        return $mmaModAssignOffline.getSubmissionGrade(assign.id, userId).then(function(data) {
+                            if (data) {
+                                // Load offline grades.
+                                scope.grade.grade = data.grade;
+                                scope.grade.applyToAll = data.applytoall;
+                                scope.grade.addAttempt = data.addattempt;
+
+                                if (data.outcomes && Object.keys(data.outcomes).length) {
+                                    angular.forEach(scope.gradeInfo.outcomes, function(outcome) {
+                                        if (typeof data.outcomes[outcome.itemNumber] != "undefined") {
+                                            outcome.selectedId = data.outcomes[outcome.itemNumber];
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    } else {
                         return $mmCourse.getModule(moduleId, courseId, false, true).then(function(mod) {
-                            scope.gradeUrl = mod.url + "&action=grader&userid="+userId;
+                            scope.gradeUrl = mod.url + "&action=grader&userid=" + userId;
                         });
                     }
                 });
@@ -259,6 +279,11 @@ angular.module('mm.addons.mod_assign')
                     promises = [];
 
                 scope.assign = assign;
+
+                if (!scope.$$destroyed) {
+                    // Block the assignment.
+                    $mmSyncBlock.blockOperation(mmaModAssignComponent, assign.id);
+                }
 
                 if (assign.allowsubmissionsfromdate && assign.allowsubmissionsfromdate >= time) {
                     scope.fromDate = moment(assign.allowsubmissionsfromdate * 1000)
@@ -519,6 +544,10 @@ angular.module('mm.addons.mod_assign')
             scope.$on('$destroy', function() {
                 obsInvalidated && obsInvalidated();
                 obsManualSync && obsManualSync.off && obsManualSync.off();
+
+                if (scope.assign) {
+                    $mmSyncBlock.unblockOperation(mmaModAssignComponent, scope.assign.id);
+                }
             });
 
             controller.load(scope, moduleId, courseId, submitId, blindId);
@@ -633,7 +662,7 @@ angular.module('mm.addons.mod_assign')
 
                 return pluginPromise.then(function(pluginData) {
                     return $mmaModAssign.submitGradingForm(scope.assign.id, submitId, grade, attemptNumber, scope.grade.addAttempt,
-                            scope.grade.gradingStatus, scope.grade.applyToAll, outcomes, pluginData).then(function() {
+                            scope.grade.gradingStatus, scope.grade.applyToAll, outcomes, pluginData, courseId).then(function() {
 
                         var promise;
                         if (scope.feedback && scope.feedback.plugins) {
