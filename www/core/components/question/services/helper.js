@@ -88,7 +88,8 @@ angular.module('mm.core.question')
                     }
                     var opt = {
                         value: option.value,
-                        label: option.innerHTML
+                        label: option.innerHTML,
+                        selected: option.selected
                     };
 
                     if (option.selected) {
