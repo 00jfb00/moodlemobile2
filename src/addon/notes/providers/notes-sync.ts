@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
+import { Injectable, Injector } from '@angular/core';
 import { CoreSyncBaseProvider } from '@classes/base-sync';
-import { CoreAppProvider } from '@providers/app';
 import { AddonNotesOfflineProvider } from './notes-offline';
 import { AddonNotesProvider } from './notes';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
 import { CoreEventsProvider } from '@providers/events';
-import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { TranslateService } from '@ngx-translate/core';
-import { CoreSyncProvider } from '@providers/sync';
 
 /**
  * Service to sync notes.
@@ -34,12 +28,11 @@ export class AddonNotesSyncProvider extends CoreSyncBaseProvider {
 
     static AUTO_SYNCED = 'addon_notes_autom_synced';
 
-    constructor(protected sitesProvider: CoreSitesProvider, protected loggerProvider: CoreLoggerProvider,
-            protected appProvider: CoreAppProvider, private notesOffline: AddonNotesOfflineProvider,
+    constructor(injector: Injector, private notesOffline: AddonNotesOfflineProvider, private utils: CoreUtilsProvider,
             private eventsProvider: CoreEventsProvider,  private notesProvider: AddonNotesProvider,
-            private coursesProvider: CoreCoursesProvider, private translate: TranslateService, private utils: CoreUtilsProvider,
-            syncProvider: CoreSyncProvider, protected textUtils: CoreTextUtilsProvider) {
-        super('AddonNotesSync', sitesProvider, loggerProvider, appProvider, syncProvider, textUtils);
+            private coursesProvider: CoreCoursesProvider) {
+
+        super('AddonNotesSync', injector);
     }
 
     /**

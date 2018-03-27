@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
+import { Injectable, Injector } from '@angular/core';
 import { CoreSyncBaseProvider } from '@classes/base-sync';
-import { CoreAppProvider } from '@providers/app';
 import { AddonMessagesOfflineProvider } from './messages-offline';
 import { AddonMessagesProvider } from './messages';
 import { CoreUserProvider } from '@core/user/providers/user';
 import { CoreEventsProvider } from '@providers/events';
-import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { TranslateService } from '@ngx-translate/core';
-import { CoreSyncProvider } from '@providers/sync';
 
 /**
  * Service to sync messages.
@@ -34,12 +28,10 @@ export class AddonMessagesSyncProvider extends CoreSyncBaseProvider {
 
     static AUTO_SYNCED = 'addon_messages_autom_synced';
 
-    constructor(protected sitesProvider: CoreSitesProvider, protected loggerProvider: CoreLoggerProvider,
-            protected appProvider: CoreAppProvider, private messagesOffline: AddonMessagesOfflineProvider,
-            private eventsProvider: CoreEventsProvider,  private messagesProvider: AddonMessagesProvider,
-            private userProvider: CoreUserProvider, private translate: TranslateService, private utils: CoreUtilsProvider,
-            syncProvider: CoreSyncProvider, protected textUtils: CoreTextUtilsProvider) {
-        super('AddonMessagesSync', sitesProvider, loggerProvider, appProvider, syncProvider, textUtils);
+    constructor(injector: Injector, private messagesOffline: AddonMessagesOfflineProvider, private utils: CoreUtilsProvider,
+            private eventsProvider: CoreEventsProvider, private messagesProvider: AddonMessagesProvider,
+            private userProvider: CoreUserProvider) {
+        super('AddonMessagesSync', injector);
     }
 
     /**

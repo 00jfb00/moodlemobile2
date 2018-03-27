@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
+import { Injectable, Injector } from '@angular/core';
 import { CoreSyncBaseProvider } from '@classes/base-sync';
-import { CoreAppProvider } from '@providers/app';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { CoreTextUtilsProvider } from '@providers/utils/text';
 import { AddonModSurveyOfflineProvider } from './offline';
 import { AddonModSurveyProvider } from './survey';
 import { CoreEventsProvider } from '@providers/events';
-import { TranslateService } from '@ngx-translate/core';
 import { CoreCourseProvider } from '@core/course/providers/course';
-import { CoreSyncProvider } from '@providers/sync';
 
 /**
  * Service to sync surveys.
@@ -35,12 +29,12 @@ export class AddonModSurveySyncProvider extends CoreSyncBaseProvider {
     static AUTO_SYNCED = 'addon_mod_survey_autom_synced';
     protected componentTranslate: string;
 
-    constructor(protected sitesProvider: CoreSitesProvider, protected loggerProvider: CoreLoggerProvider,
-            protected appProvider: CoreAppProvider, private surveyOffline: AddonModSurveyOfflineProvider,
+    constructor(injector: Injector, courseProvider: CoreCourseProvider, private surveyOffline: AddonModSurveyOfflineProvider,
             private eventsProvider: CoreEventsProvider,  private surveyProvider: AddonModSurveyProvider,
-            private translate: TranslateService, private utils: CoreUtilsProvider, protected textUtils: CoreTextUtilsProvider,
-            courseProvider: CoreCourseProvider, syncProvider: CoreSyncProvider) {
-        super('AddonModSurveySyncProvider', sitesProvider, loggerProvider, appProvider, syncProvider, textUtils);
+            private utils: CoreUtilsProvider) {
+
+        super('AddonModSurveySyncProvider', injector);
+
         this.componentTranslate = courseProvider.translateModuleName('survey');
     }
 
