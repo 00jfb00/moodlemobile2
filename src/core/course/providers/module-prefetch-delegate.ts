@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { CoreEventsProvider } from '@providers/events';
 import { CoreFileProvider } from '@providers/file';
 import { CoreFilepoolProvider } from '@providers/filepool';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
 import { CoreTimeUtilsProvider } from '@providers/utils/time';
 import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreCourseProvider } from './course';
@@ -236,16 +234,15 @@ export class CoreCourseModulePrefetchDelegate extends CoreDelegate {
         }
     } = {};
 
-    constructor(loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider, private utils: CoreUtilsProvider,
-            private courseProvider: CoreCourseProvider, private filepoolProvider: CoreFilepoolProvider,
-            private timeUtils: CoreTimeUtilsProvider, private fileProvider: CoreFileProvider,
-            protected eventsProvider: CoreEventsProvider) {
-        super('CoreCourseModulePrefetchDelegate', loggerProvider, sitesProvider, eventsProvider);
+    constructor(injector: Injector, private utils: CoreUtilsProvider, private courseProvider: CoreCourseProvider,
+            private filepoolProvider: CoreFilepoolProvider, private timeUtils: CoreTimeUtilsProvider,
+            private fileProvider: CoreFileProvider) {
+        super('CoreCourseModulePrefetchDelegate', injector, true);
 
         this.sitesProvider.createTableFromSchema(this.checkUpdatesTableSchema);
 
-        eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearStatusCache.bind(this));
-        eventsProvider.on(CoreEventsProvider.PACKAGE_STATUS_CHANGED, (data) => {
+        this.eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearStatusCache.bind(this));
+        this.eventsProvider.on(CoreEventsProvider.PACKAGE_STATUS_CHANGED, (data) => {
             this.updateStatusCache(data.status, data.component, data.componentId);
         }, this.sitesProvider.getCurrentSiteId());
     }

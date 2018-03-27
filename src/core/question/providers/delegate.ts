@@ -13,9 +13,6 @@
 // limitations under the License.
 
 import { Injectable, Injector } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreEventsProvider } from '@providers/events';
-import { CoreSitesProvider } from '@providers/sites';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 import { CoreQuestionDefaultHandler } from './default-question-handler';
 
@@ -117,9 +114,8 @@ export class CoreQuestionDelegate extends CoreDelegate {
 
     protected handlerNameProperty = 'type';
 
-    constructor(logger: CoreLoggerProvider, sitesProvider: CoreSitesProvider, eventsProvider: CoreEventsProvider,
-            protected defaultHandler: CoreQuestionDefaultHandler) {
-        super('CoreQuestionDelegate', logger, sitesProvider, eventsProvider);
+    constructor(injector: Injector, protected defaultHandler: CoreQuestionDefaultHandler) {
+        super('CoreQuestionDelegate', injector, true);
     }
 
     /**

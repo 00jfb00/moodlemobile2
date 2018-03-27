@@ -91,7 +91,7 @@ export class CoreCourseModulePrefetchHandlerBase implements CoreCourseModulePref
     protected downloadPromises: { [s: string]: { [s: string]: Promise<any> } } = {};
 
     // List of services that will be injected using injector.
-    // It's done like this so subclasses don't have to send all the services to the parent in the constructor.
+    // This way subclasses don't have to be modified if we require a new service.
     protected translate: TranslateService;
     protected appProvider: CoreAppProvider;
     protected courseProvider: CoreCourseProvider;

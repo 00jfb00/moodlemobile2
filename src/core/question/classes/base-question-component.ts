@@ -30,15 +30,18 @@ export class CoreQuestionBaseComponent {
     @Input() buttonClicked: EventEmitter<any>; // Should emit an event when a behaviour button is clicked.
     @Input() onAbort: EventEmitter<void>; // Should emit an event if the question should be aborted.
 
-    protected logger;
+    // List of services that will be injected using injector.
+    // This way subclasses don't have to be modified if we require a new service.
     protected questionHelper: CoreQuestionHelperProvider;
     protected domUtils: CoreDomUtilsProvider;
     protected textUtils: CoreTextUtilsProvider;
 
-    constructor(logger: CoreLoggerProvider, logName: string, protected injector: Injector) {
-        this.logger = logger.getInstance(logName);
+    protected logger;
 
-        // Use an injector to get the providers to prevent having to modify all subclasses if a new provider is needed.
+    constructor(logName: string, protected injector: Injector) {
+        const loggerProvider = injector.get(CoreLoggerProvider);
+        this.logger = loggerProvider.getInstance(logName);
+
         this.questionHelper = injector.get(CoreQuestionHelperProvider);
         this.domUtils = injector.get(CoreDomUtilsProvider);
         this.textUtils = injector.get(CoreTextUtilsProvider);

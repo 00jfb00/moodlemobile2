@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Component, OnInit, OnDestroy, AfterViewInit, Injector, ElementRef } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
 import { CoreQuestionBaseComponent } from '@core/question/classes/base-question-component';
 import { AddonQtypeDdImageOrTextQuestion } from '../classes/ddimageortext';
 
@@ -30,8 +29,8 @@ export class AddonQtypeDdImageOrTextComponent extends CoreQuestionBaseComponent 
     protected questionInstance: AddonQtypeDdImageOrTextQuestion;
     protected drops: any[]; // The drop zones received in the init object of the question.
 
-    constructor(logger: CoreLoggerProvider, injector: Injector, element: ElementRef) {
-        super(logger, 'AddonQtypeDdImageOrTextComponent', injector);
+    constructor(injector: Injector, element: ElementRef) {
+        super('AddonQtypeDdImageOrTextComponent', injector);
 
         this.element = element.nativeElement;
     }

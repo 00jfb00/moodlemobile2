@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { CoreEventsProvider } from '@providers/events';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 
 /**
@@ -146,11 +144,10 @@ export interface CoreFileUploaderHandlerDataToReturn extends CoreFileUploaderHan
  */
 @Injectable()
 export class CoreFileUploaderDelegate extends CoreDelegate {
-    constructor(loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider,
-            protected eventsProvider: CoreEventsProvider) {
-        super('CoreFileUploaderDelegate', loggerProvider, sitesProvider, eventsProvider);
+    constructor(injector: Injector) {
+        super('CoreFileUploaderDelegate', injector, true);
 
-        eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearSiteHandlers.bind(this));
+        this.eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearSiteHandlers.bind(this));
     }
 
     /**

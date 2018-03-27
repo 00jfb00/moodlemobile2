@@ -37,7 +37,7 @@ export class CoreCourseModuleMainActivityComponent extends CoreCourseModuleMainR
     protected syncEventName: string; // Auto sync event name.
 
     // List of services that will be injected using injector.
-    // It's done like this so subclasses don't have to send all the services to the parent in the constructor.
+    // This way subclasses don't have to be modified if we require a new service.
     protected sitesProvider: CoreSitesProvider;
     protected courseProvider: CoreCourseProvider;
     protected appProvider: CoreAppProvider;

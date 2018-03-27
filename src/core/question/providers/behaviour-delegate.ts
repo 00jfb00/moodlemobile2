@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreEventsProvider } from '@providers/events';
-import { CoreSitesProvider } from '@providers/sites';
+import { Injectable, Injector } from '@angular/core';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 import { CoreQuestionState } from './question';
 import { CoreQuestionDelegate } from './delegate';
@@ -63,9 +60,9 @@ export class CoreQuestionBehaviourDelegate extends CoreDelegate {
 
     protected handlerNameProperty = 'type';
 
-    constructor(logger: CoreLoggerProvider, sitesProvider: CoreSitesProvider, eventsProvider: CoreEventsProvider,
-            protected questionDelegate: CoreQuestionDelegate, protected defaultHandler: CoreQuestionBehaviourDefaultHandler) {
-        super('CoreQuestionBehaviourDelegate', logger, sitesProvider, eventsProvider);
+    constructor(injector: Injector, protected questionDelegate: CoreQuestionDelegate,
+            protected defaultHandler: CoreQuestionBehaviourDefaultHandler) {
+        super('CoreQuestionBehaviourDelegate', injector, true);
     }
 
     /**

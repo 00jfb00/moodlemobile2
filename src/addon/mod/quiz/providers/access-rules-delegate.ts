@@ -13,9 +13,6 @@
 // limitations under the License.
 
 import { Injectable, Injector } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreEventsProvider } from '@providers/events';
-import { CoreSitesProvider } from '@providers/sites';
 import { CoreUtilsProvider } from '@providers/utils/utils';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 
@@ -116,9 +113,8 @@ export class AddonModQuizAccessRuleDelegate extends CoreDelegate {
 
     protected handlerNameProperty = 'ruleName';
 
-    constructor(logger: CoreLoggerProvider, sitesProvider: CoreSitesProvider, eventsProvider: CoreEventsProvider,
-            protected utils: CoreUtilsProvider) {
-        super('AddonModQuizAccessRulesDelegate', logger, sitesProvider, eventsProvider);
+    constructor(injector: Injector, protected utils: CoreUtilsProvider) {
+        super('AddonModQuizAccessRulesDelegate', injector, true);
     }
 
     /**

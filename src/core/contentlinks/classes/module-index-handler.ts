@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { Injector } from '@angular/core';
 import { CoreContentLinksAction } from '../providers/delegate';
 import { CoreContentLinksHandlerBase } from './base-handler';
 import { CoreCourseHelperProvider } from '@core/course/providers/helper';
@@ -21,6 +22,10 @@ import { CoreCourseHelperProvider } from '@core/course/providers/helper';
  */
 export class CoreContentLinksModuleIndexHandler extends CoreContentLinksHandlerBase {
 
+    // List of services that will be injected using injector.
+    // This way subclasses don't have to be modified if we require a new service.
+    protected courseHelper: CoreCourseHelperProvider;
+
     /**
      * Construct the handler.
      *
@@ -28,8 +33,10 @@ export class CoreContentLinksModuleIndexHandler extends CoreContentLinksHandlerB
      * @param {string} addon Name of the addon as it's registered in course delegate. It'll be used to check if it's disabled.
      * @param {string} modName Name of the module (assign, book, ...).
      */
-    constructor(protected courseHelper: CoreCourseHelperProvider, public addon: string, public modName: string) {
+    constructor(injector: Injector, public addon: string, public modName: string) {
         super();
+
+        this.courseHelper = injector.get(CoreCourseHelperProvider);
 
         // Match the view.php URL with an id param.
         this.pattern = new RegExp('\/mod\/' + modName + '\/view\.php.*([\&\?]id=\\d+)');

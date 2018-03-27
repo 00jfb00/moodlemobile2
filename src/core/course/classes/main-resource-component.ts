@@ -44,7 +44,7 @@ export class CoreCourseModuleMainResourceComponent implements OnInit, OnDestroy,
     protected fetchContentDefaultError = 'core.course.errorgetmodule'; // Default error to show when loading contents.
 
     // List of services that will be injected using injector.
-    // It's done like this so subclasses don't have to send all the services to the parent in the constructor.
+    // This way subclasses don't have to be modified if we require a new service.
     protected textUtils: CoreTextUtilsProvider;
     protected courseHelper: CoreCourseHelperProvider;
     protected translate: TranslateService;

@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { CoreEventsProvider } from '@providers/events';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
 import { Subject, BehaviorSubject } from 'rxjs';
 
 /**
@@ -111,11 +109,10 @@ export class CoreMainMenuDelegate extends CoreDelegate {
     protected siteHandlers: Subject<CoreMainMenuHandlerToDisplay[]> = new BehaviorSubject<CoreMainMenuHandlerToDisplay[]>([]);
     protected featurePrefix = 'CoreMainMenuDelegate_';
 
-    constructor(protected loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider,
-            protected eventsProvider: CoreEventsProvider) {
-        super('CoreMainMenuDelegate', loggerProvider, sitesProvider, eventsProvider);
+    constructor(injector: Injector) {
+        super('CoreMainMenuDelegate', injector, true);
 
-        eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearSiteHandlers.bind(this));
+        this.eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearSiteHandlers.bind(this));
     }
 
     /**

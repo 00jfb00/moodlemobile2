@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Directive, OnInit, ElementRef, Optional } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { CoreDomUtilsProvider } from '@providers/utils/dom';
-import { CoreSitePluginsProvider } from '../providers/siteplugins';
+import { Injector, Directive, OnInit, ElementRef, Optional } from '@angular/core';
 import { CoreSitePluginsCallWSBaseDirective } from '../classes/call-ws-directive';
 import { CoreSitePluginsPluginContentComponent } from '../components/plugin-content/plugin-content';
 
@@ -37,9 +34,8 @@ import { CoreSitePluginsPluginContentComponent } from '../components/plugin-cont
 })
 export class CoreSitePluginsCallWSOnLoadDirective extends CoreSitePluginsCallWSBaseDirective implements OnInit {
 
-    constructor(element: ElementRef, translate: TranslateService, domUtils: CoreDomUtilsProvider,
-            sitePluginsProvider: CoreSitePluginsProvider, @Optional() parentContent: CoreSitePluginsPluginContentComponent) {
-        super(element, translate, domUtils, sitePluginsProvider, parentContent);
+    constructor(element: ElementRef, injector: Injector, @Optional() parentContent: CoreSitePluginsPluginContentComponent) {
+        super(element, injector, parentContent);
     }
 
     /**

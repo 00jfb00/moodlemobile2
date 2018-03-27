@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 import { CoreEventsProvider } from '@providers/events';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
 import { CoreUtilsProvider } from '@providers/utils/utils';
 
 /**
@@ -81,11 +79,10 @@ export class CoreSettingsDelegate extends CoreDelegate {
 
     protected siteHandlers: CoreSettingsHandlerData[] = []; // Handlers to return.
 
-    constructor(protected loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider,
-            protected eventsProvider: CoreEventsProvider, protected utils: CoreUtilsProvider) {
-        super('CoreSettingsDelegate', loggerProvider, sitesProvider, eventsProvider);
+    constructor(injector: Injector, protected utils: CoreUtilsProvider) {
+        super('CoreSettingsDelegate', injector, true);
 
-        eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearSiteHandlers.bind(this));
+        this.eventsProvider.on(CoreEventsProvider.LOGOUT, this.clearSiteHandlers.bind(this));
     }
 
     /**

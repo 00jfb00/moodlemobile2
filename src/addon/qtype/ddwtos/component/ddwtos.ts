@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Component, OnInit, OnDestroy, AfterViewInit, Injector, ElementRef } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
 import { CoreQuestionBaseComponent } from '@core/question/classes/base-question-component';
 import { AddonQtypeDdwtosQuestion } from '../classes/ddwtos';
 
@@ -30,8 +29,8 @@ export class AddonQtypeDdwtosComponent extends CoreQuestionBaseComponent impleme
     protected questionInstance: AddonQtypeDdwtosQuestion;
     protected inputIds: string[]; // Ids of the inputs of the question (where the answers will be stored).
 
-    constructor(logger: CoreLoggerProvider, injector: Injector, element: ElementRef) {
-        super(logger, 'AddonQtypeDdwtosComponent', injector);
+    constructor(injector: Injector, element: ElementRef) {
+        super('AddonQtypeDdwtosComponent', injector);
 
         this.element = element.nativeElement;
     }

@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
-import { CoreEventsProvider } from '@providers/events';
 import { Subject, BehaviorSubject } from 'rxjs';
 
 /**
@@ -168,11 +165,10 @@ export class CoreUserDelegate extends CoreDelegate {
     protected featurePrefix = 'CoreUserDelegate_';
     protected loaded = false;
 
-    constructor(protected loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider,
-            private coursesProvider: CoreCoursesProvider, protected eventsProvider: CoreEventsProvider) {
-        super('CoreUserDelegate', loggerProvider, sitesProvider, eventsProvider);
+    constructor(injector: Injector, private coursesProvider: CoreCoursesProvider) {
+        super('CoreUserDelegate', injector, true);
 
-        eventsProvider.on(CoreUserDelegate.UPDATE_HANDLER_EVENT, (data) => {
+        this.eventsProvider.on(CoreUserDelegate.UPDATE_HANDLER_EVENT, (data) => {
             if (data && data.handler) {
                 const handler = this.userHandlers.find((userHandler) => {
                     return userHandler.name == data.handler;

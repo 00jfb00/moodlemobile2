@@ -15,8 +15,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { CoreDelegate, CoreDelegateHandler } from '@classes/delegate';
 import { CoreEventsProvider } from '@providers/events';
-import { CoreLoggerProvider } from '@providers/logger';
-import { CoreSitesProvider } from '@providers/sites';
 import { CoreUtilsProvider, PromiseDefer } from '@providers/utils/utils';
 import { CoreCoursesProvider } from '@core/courses/providers/courses';
 import { CoreCourseProvider } from './course';
@@ -139,11 +137,10 @@ export class CoreCourseOptionsDelegate extends CoreDelegate {
 
     protected featurePrefix = 'CoreCourseOptionsDelegate_';
 
-    constructor(loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider, private utils: CoreUtilsProvider,
-            protected eventsProvider: CoreEventsProvider, private coursesProvider: CoreCoursesProvider) {
-        super('CoreCourseOptionsDelegate', loggerProvider, sitesProvider, eventsProvider);
+    constructor(injector: Injector, private utils: CoreUtilsProvider, private coursesProvider: CoreCoursesProvider) {
+        super('CoreCourseOptionsDelegate', injector, true);
 
-        eventsProvider.on(CoreEventsProvider.LOGOUT, () => {
+        this.eventsProvider.on(CoreEventsProvider.LOGOUT, () => {
             this.clearCoursesHandlers();
         });
     }

@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Input, OnInit, ElementRef } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { CoreDomUtilsProvider } from '@providers/utils/dom';
-import { CoreSitePluginsProvider } from '../providers/siteplugins';
+import { Injector, Input, OnInit, ElementRef } from '@angular/core';
 import { CoreSitePluginsPluginContentComponent } from '../components/plugin-content/plugin-content';
 import { CoreSitePluginsCallWSBaseDirective } from './call-ws-directive';
 
@@ -29,10 +26,8 @@ import { CoreSitePluginsCallWSBaseDirective } from './call-ws-directive';
 export class CoreSitePluginsCallWSOnClickBaseDirective extends CoreSitePluginsCallWSBaseDirective implements OnInit {
     @Input() confirmMessage: string; // Message to confirm the action. If not supplied, no confirmation. If empty, default message.
 
-    constructor(element: ElementRef, protected translate: TranslateService, protected domUtils: CoreDomUtilsProvider,
-            protected sitePluginsProvider: CoreSitePluginsProvider,
-            protected parentContent: CoreSitePluginsPluginContentComponent) {
-        super(element, translate, domUtils, sitePluginsProvider, parentContent);
+    constructor(element: ElementRef, injector: Injector, protected parentContent: CoreSitePluginsPluginContentComponent) {
+        super(element, injector, parentContent);
     }
 
     /**

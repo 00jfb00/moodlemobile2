@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injector } from '@angular/core';
 import { CoreLoggerProvider } from '@providers/logger';
 import { CoreSitesProvider } from '@providers/sites';
 import { CoreEventsProvider } from '@providers/events';
@@ -35,7 +35,6 @@ export interface CoreDelegateHandler {
 /**
  * Superclass to help creating delegates
  */
-@Injectable()
 export class CoreDelegate {
 
     /**
@@ -89,24 +88,32 @@ export class CoreDelegate {
      */
     protected updatePromises: {[siteId: string]: {[name: string]: Promise<any>}} = {};
 
+    // List of services that will be injected using injector.
+    // This way subclasses don't have to be modified if we require a new service.
+    protected sitesProvider: CoreSitesProvider;
+    protected eventsProvider: CoreEventsProvider;
+
     /**
      * Constructor of the Delegate.
      *
      * @param {string} delegateName Delegate name used for logging purposes.
-     * @param {CoreLoggerProvider}   loggerProvider CoreLoggerProvider instance, cannot be directly injected.
-     * @param {CoreSitesProvider}    sitesProvider  CoreSitesProvider instance, cannot be directly injected.
-     * @param {CoreEventsProvider}   [eventsProvider]  CoreEventsProvider instance, cannot be directly injected.
-     *                                                  If not set, no events will be fired.
+     * @param {Injector} injector Injector to obrain all services.
+     * @param {boolean} [watchEvents] Whether to update handlers when login or similar events are triggered.
      */
-    constructor(delegateName: string, protected loggerProvider: CoreLoggerProvider, protected sitesProvider: CoreSitesProvider,
-            protected eventsProvider?: CoreEventsProvider) {
-        this.logger = this.loggerProvider.getInstance(delegateName);
+    constructor(delegateName: string, injector: Injector, watchEvents?: boolean) {
 
-        if (eventsProvider) {
+        const loggerProvider = injector.get(CoreLoggerProvider);
+
+        this.sitesProvider = injector.get(CoreSitesProvider);
+        this.eventsProvider = injector.get(CoreEventsProvider);
+
+        this.logger = loggerProvider.getInstance(delegateName);
+
+        if (watchEvents) {
             // Update handlers on this cases.
-            eventsProvider.on(CoreEventsProvider.LOGIN, this.updateHandlers.bind(this));
-            eventsProvider.on(CoreEventsProvider.SITE_UPDATED, this.updateHandlers.bind(this));
-            eventsProvider.on(CoreEventsProvider.SITE_PLUGINS_LOADED, this.updateHandlers.bind(this));
+            this.eventsProvider.on(CoreEventsProvider.LOGIN, this.updateHandlers.bind(this));
+            this.eventsProvider.on(CoreEventsProvider.SITE_UPDATED, this.updateHandlers.bind(this));
+            this.eventsProvider.on(CoreEventsProvider.SITE_PLUGINS_LOADED, this.updateHandlers.bind(this));
         }
     }
 

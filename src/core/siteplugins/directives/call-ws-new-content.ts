@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Directive, Input, ElementRef, Optional } from '@angular/core';
+import { Injector, Directive, Input, ElementRef, Optional } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { TranslateService } from '@ngx-translate/core';
-import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { CoreSitePluginsProvider } from '../providers/siteplugins';
 import { CoreSitePluginsCallWSOnClickBaseDirective } from '../classes/call-ws-click-directive';
 import { CoreSitePluginsPluginContentComponent } from '../components/plugin-content/plugin-content';
 
@@ -60,10 +57,9 @@ export class CoreSitePluginsCallWSNewContentDirective extends CoreSitePluginsCal
     @Input() samePage: boolean | string; // Whether to display the content in same page or open a new one. Defaults to new page.
     @Input() useOtherData: any[]; // Whether to include other data in the args. @see CoreSitePluginsProvider.loadOtherDataInArgs.
 
-    constructor(element: ElementRef, translate: TranslateService, domUtils: CoreDomUtilsProvider,
-            sitePluginsProvider: CoreSitePluginsProvider, @Optional() parentContent: CoreSitePluginsPluginContentComponent,
+    constructor(element: ElementRef, injector: Injector, @Optional() parentContent: CoreSitePluginsPluginContentComponent,
             protected utils: CoreUtilsProvider, @Optional() protected navCtrl: NavController) {
-        super(element, translate, domUtils, sitePluginsProvider, parentContent);
+        super(element, injector, parentContent);
     }
 
     /**

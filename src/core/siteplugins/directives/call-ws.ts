@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Directive, Input, ElementRef, Optional } from '@angular/core';
+import { Injector, Directive, Input, ElementRef, Optional } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { TranslateService } from '@ngx-translate/core';
-import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreUtilsProvider } from '@providers/utils/utils';
-import { CoreSitePluginsProvider } from '../providers/siteplugins';
 import { CoreSitePluginsCallWSOnClickBaseDirective } from '../classes/call-ws-click-directive';
 import { CoreSitePluginsPluginContentComponent } from '../components/plugin-content/plugin-content';
 
@@ -54,10 +51,9 @@ export class CoreSitePluginsCallWSDirective extends CoreSitePluginsCallWSOnClick
     @Input() goBackOnSuccess: boolean | string; // Whether to go back if the WS call is successful.
     @Input() refreshOnSuccess: boolean | string; // Whether to refresh the current view if the WS call is successful.
 
-    constructor(element: ElementRef, translate: TranslateService, domUtils: CoreDomUtilsProvider,
-            sitePluginsProvider: CoreSitePluginsProvider, @Optional() parentContent: CoreSitePluginsPluginContentComponent,
+    constructor(element: ElementRef, injector: Injector, @Optional() parentContent: CoreSitePluginsPluginContentComponent,
             protected utils: CoreUtilsProvider, protected navCtrl: NavController) {
-        super(element, translate, domUtils, sitePluginsProvider, parentContent);
+        super(element, injector, parentContent);
     }
 
     /**

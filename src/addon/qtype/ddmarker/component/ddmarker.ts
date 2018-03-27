@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { Component, OnInit, OnDestroy, AfterViewInit, Injector, ElementRef } from '@angular/core';
-import { CoreLoggerProvider } from '@providers/logger';
 import { CoreQuestionBaseComponent } from '@core/question/classes/base-question-component';
 import { AddonQtypeDdMarkerQuestion } from '../classes/ddmarker';
 
@@ -30,8 +29,8 @@ export class AddonQtypeDdMarkerComponent extends CoreQuestionBaseComponent imple
     protected questionInstance: AddonQtypeDdMarkerQuestion;
     protected dropZones: any[]; // The drop zones received in the init object of the question.
 
-    constructor(logger: CoreLoggerProvider, injector: Injector, element: ElementRef) {
-        super(logger, 'AddonQtypeDdMarkerComponent', injector);
+    constructor(injector: Injector, element: ElementRef) {
+        super('AddonQtypeDdMarkerComponent', injector);
 
         this.element = element.nativeElement;
     }

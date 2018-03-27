@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Input, OnInit, OnDestroy, ElementRef } from '@angular/core';
+import { Injector, Input, OnInit, OnDestroy, ElementRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { CoreDomUtilsProvider } from '@providers/utils/dom';
 import { CoreSitePluginsProvider } from '../providers/siteplugins';
@@ -34,10 +34,18 @@ export class CoreSitePluginsCallWSBaseDirective implements OnInit, OnDestroy {
     protected element: HTMLElement;
     protected invalidateObserver: Subscription;
 
-    constructor(element: ElementRef, protected translate: TranslateService, protected domUtils: CoreDomUtilsProvider,
-            protected sitePluginsProvider: CoreSitePluginsProvider,
-            protected parentContent: CoreSitePluginsPluginContentComponent) {
+    // List of services that will be injected using injector.
+    // This way subclasses don't have to be modified if we require a new service.
+    protected translate: TranslateService;
+    protected domUtils: CoreDomUtilsProvider;
+    protected sitePluginsProvider: CoreSitePluginsProvider;
+
+    constructor(element: ElementRef, injector: Injector, protected parentContent: CoreSitePluginsPluginContentComponent) {
         this.element = element.nativeElement || element;
+
+        this.translate = injector.get(TranslateService);
+        this.domUtils = injector.get(CoreDomUtilsProvider);
+        this.sitePluginsProvider = injector.get(CoreSitePluginsProvider);
     }
 
     /**

@@ -48,7 +48,7 @@ export class CoreSyncBaseProvider {
     protected syncPromises: { [siteId: string]: { [uniqueId: string]: Promise<any> } } = {};
 
     // List of services that will be injected using injector.
-    // It's done like this so subclasses don't have to send all the services to the parent in the constructor.
+    // This way subclasses don't have to be modified if we require a new service.
     protected sitesProvider: CoreSitesProvider;
     protected appProvider: CoreAppProvider;
     protected syncProvider: CoreSyncProvider;

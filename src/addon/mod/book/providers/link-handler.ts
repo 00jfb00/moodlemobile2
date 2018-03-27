@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { CoreContentLinksModuleIndexHandler } from '@core/contentlinks/classes/module-index-handler';
-import { CoreCourseHelperProvider } from '@core/course/providers/helper';
 
 /**
  * Handler to treat links to book.
@@ -23,7 +22,7 @@ import { CoreCourseHelperProvider } from '@core/course/providers/helper';
 export class AddonModBookLinkHandler extends CoreContentLinksModuleIndexHandler {
     name = 'AddonModBookLinkHandler';
 
-    constructor(courseHelper: CoreCourseHelperProvider) {
-        super(courseHelper, 'AddonModBook', 'book');
+    constructor(injector: Injector) {
+        super(injector, 'AddonModBook', 'book');
     }
 }
