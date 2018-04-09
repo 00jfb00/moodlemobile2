@@ -75,6 +75,7 @@ import { AddonCalendarModule } from '@addon/calendar/calendar.module';
 import { AddonCompetencyModule } from '@addon/competency/competency.module';
 import { AddonUserProfileFieldModule } from '@addon/userprofilefield/userprofilefield.module';
 import { AddonFilesModule } from '@addon/files/files.module';
+import { AddonModAssignModule } from '@addon/mod/assign/assign.module';
 import { AddonModBookModule } from '@addon/mod/book/book.module';
 import { AddonModLabelModule } from '@addon/mod/label/label.module';
 import { AddonModResourceModule } from '@addon/mod/resource/resource.module';
@@ -162,6 +163,7 @@ export const CORE_PROVIDERS: any[] = [
         AddonCompetencyModule,
         AddonUserProfileFieldModule,
         AddonFilesModule,
+        AddonModAssignModule,
         AddonModBookModule,
         AddonModLabelModule,
         AddonModResourceModule,
